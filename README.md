@@ -28,8 +28,8 @@ In GridWolrd environment, the agent try to figure out the optimal (shortest) pat
 Running **main.py** will generate an TD(Q-learning) agent by default.  
 
 2. REINFORCE  
-Run **./REINFORCE/train_REINFORCE** to train an agent of playing Pong.  
-Run **./REINFORCE/test_REINFORCE** to test a trained agent.  
+Run **./REINFORCE/train_REINFORCE.py** to train an agent of playing Pong.  
+Run **./REINFORCE/evaluation.py** to test a trained agent.  
 
 3. Actor-Critic  
 Run **./Actor-Critic/train_actor-critic.py** to train an agent of playing Pong.  
