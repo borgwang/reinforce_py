@@ -63,32 +63,3 @@ class GridWorld(object):
 
     def reset(self):
         return 0  # initi state
-
-
-class RandomWalk(object):
-    def __init__(self, s):
-        self.num_s = s
-        self.R = np.zeros(self.num_s)
-        self.R[-1] = 1
-        self.num_a = 2 # left or right
-
-    def rewards(self, s, a):
-        return 1 if s == self.num_s-2 and a == 1 else 0
-
-    def allow_actions(self, s):
-        return np.array([0,1], dtype='int')
-
-    def next_state(self, s, a):
-        if a == 0:
-            ns = s - 1
-        elif a == 1:
-            ns = s + 1
-        else:
-            ns == self.reset()
-        return ns
-
-    def terminal(self, s):
-        return True if s == self.num_s-1 or s == 0 else False
-
-    def reset(self):
-        return self.num_s / 2  # initi state

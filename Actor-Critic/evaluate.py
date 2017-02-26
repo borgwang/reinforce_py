@@ -24,9 +24,9 @@ def main():
 
     # load model or init a new
     saver = tf.train.Saver(max_to_keep=1)
-    if args.model_path is not None:
+    if args.model is not None:
         # reuse saved model
-        saver.restore(agent.sess, args.model_path)
+        saver.restore(agent.sess, args.model)
     else:
         # build a new model
         agent.init_var()
@@ -34,7 +34,7 @@ def main():
     # load env
     env = gym.make("Pong-v0")
 
-    # evaluation
+    # training loop
     for ep in xrange(args.ep):
         # reset env
         total_rewards = 0
@@ -57,10 +57,11 @@ def main():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default='./model/12.31_12000',
-            help='Whether to use a saved model. (*None|model path)')
-    parser.add_argument('--gpu', default=-1,
-            help='running on a specify gpu, -1 indicates using cpu')
-    parser.add_argument('--ep', default=1, help='Test episodes')
+    parser.add_argument('--model', default='./model/12.31_12000', help=
+            'Whether to use a saved model. (*None|model path)')
+    parser.add_argument('--gpu', default=-1, help=
+            'running on a specify gpu, -1 indicates using cpu')
+    parser.add_argument('--ep', default=1, help=
+            'Test episodes')
     args = parser.parse_args()
     main()

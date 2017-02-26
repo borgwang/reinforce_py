@@ -32,7 +32,7 @@ def main():
     saver = tf.train.Saver(max_to_keep=1)
     if args.model_path is not None:
         # reuse saved model
-        saver.restore(agent.sess, MODEL_PATH)
+        saver.restore(agent.sess, args.model_path)
         ep_base = int(args.model_path.split('_')[-1])
         mean_rewards = float(args.model_path.split('/')[-1].split('_')[0])
     else:
@@ -62,7 +62,7 @@ def main():
             step += 1
             total_rewards += reward
 
-            agent.store_rollout(state, action, reward)
+            agent.store_rollout(state, action, reward, next_state, done)
             # state shift
             state = next_state
 
@@ -70,19 +70,19 @@ def main():
 
         # logging job
         # if ep % 10 == 0:
-		# 	r = np.array(agent.reward_buffer,dtype=np.int)
-		# 	index = np.where(r != 0)[0]
-		# 	delta = np.roll(index, 1)
-		# 	delta[0] = 0
-		# 	steps_per_game = index - delta
-		# 	result_per_game = r[r!=0]
-		# 	win_index = np.where(result_per_game == 1)[0]
-		# 	win_steps = np.mean(steps_per_game[win_index])
-		# 	if avg_win_steps is None:
-		# 		avg_win_steps = win_steps
-		# 	else:
-		# 		avg_win_steps = 0.99 * avg_win_steps + 0.01 * win_steps
-		# 	print 'Average steps of win games: %.2f' % avg_win_steps
+        #     r = np.array(agent.reward_buffer,dtype=np.int)
+        #     index = np.where(r != 0)[0]
+        #     delta = np.roll(index, 1)
+        #     delta[0] = 0
+        #     steps_per_game = index - delta
+        #     result_per_game = r[r!=0]
+        #     win_index = np.where(result_per_game == 1)[0]
+        #     win_steps = np.mean(steps_per_game[win_index])
+        #     if avg_win_steps is None:
+        #         avg_win_steps = win_steps
+        #     else:
+        #         avg_win_steps = 0.99 * avg_win_steps + 0.01 * win_steps
+        #     print 'Average steps of win games: %.2f' % avg_win_steps
 
         if mean_rewards is None:
             mean_rewards = total_rewards
@@ -98,7 +98,7 @@ def main():
         # update model per episode
         agent.update_model()
         # model saving
-        if ep % 100 == 0: # model saving
+        if ep % args.save_every == args.save_every-1:
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)
             saver.save(agent.sess,
@@ -107,12 +107,14 @@ def main():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default=None,
-            help='Whether to use a saved model. (*None|model path)')
-    parser.add_argument('--save_path', default='./model/',
-            help='Path to save a model during training.')
-    parser.add_argument('--gpu', default=-1,
-            help='running on a specify gpu, -1 indicates using cpu')
+    parser.add_argument('--model_path', default=None, help=
+                'Whether to use a saved model. (*None|model path)')
+    parser.add_argument('--save_path', default='./model/', help=
+                'Path to save a model during training.')
+    parser.add_argument('--save_every', default=100, help=
+                'Save model every x episodes')
+    parser.add_argument('--gpu', default=-1, help=
+                'running on a specify gpu, -1 indicates using cpu')
     args = parser.parse_args()
 
     main()

@@ -22,10 +22,10 @@ The game of Pong is an Atari game which user control one of the paddle (the othe
 We will solve the game of Pong using REINFORCE, Actor-Critic and DQN respectively.  
 
 ## Usage  
-1. Value-based Algorithms (DP, MC, TD)  
+1. Temporal Difference
 ![image](https://github.com/borgwang/reinforce_py/raw/master/imgs/usage.png)   
 In GridWolrd environment, the agent try to figure out the optimal (shortest) path to the target.   
-Running **main.py** will generate an TD(Q-learning) agent by default.  
+Running **./Temporal-Difference/train_TD.py** will generate an TD(Q-learning) agent by default.  
 
 2. REINFORCE  
 Run **./REINFORCE/train_REINFORCE.py** to train an agent of playing Pong.  
@@ -38,12 +38,10 @@ Run **./Actor-Critic/evaluation.py** to evaluate a trained model.
 For more details about policy gradient algorithms, see Chap 13 of  [Reinforcement Learning: An Introduction 2nd Edition](http://webdocs.cs.ualberta.ca/~sutton/book/the-book.html)  
 
 ## Algorithms  
-1. Dynamic Programming (GridWorld)  
-2. Monte-Carlo (GridWorld)  
-3. Temporal Difference (GridWorld)
-4. REINFORCE (Pong)
-5. Actor-Critic (Pong)  
+1. Temporal Difference (GridWorld)
+2. REINFORCE (Pong)
+3. Actor-Critic (Pong)  
 
 
 ## LICENCE  
-MIT.
+MIT
