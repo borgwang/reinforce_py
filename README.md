@@ -4,9 +4,10 @@ Implementations of some RL algorithms in [Reinforcement Learning: An Introductio
 
 
 ## Requirement  
-* Python 2.7 or Python 3.3+  
+* Python 2.7  
 * [numpy](http://www.numpy.org/)   
-
+* [tensorflow](http://www.tensorflow.org)  
+  
 ## Environment setting  
 1. GridWolrd  
 A **GridWolrd** is a typical model for tabular reinforcement learning methods. It has a 10x10 state space and an action space of {up, down, left right} to move the agent around. There is a target point with +1 reward in the environment and some bomb point with -1 rewards. Also we set a bit cost(-0.01) when the agent take one step so that it tends to find out the optimal path faster. Some walls were set to increase the difficulty.   
@@ -22,12 +23,17 @@ The game of Pong is an Atari game which user control one of the paddle (the othe
 We will solve the game of Pong using REINFORCE, Actor-Critic and DQN respectively.  
 
 ## Usage  
-1. Temporal Difference
+1. Temporal Difference  
 ![image](https://github.com/borgwang/reinforce_py/raw/master/imgs/usage.png)   
 In GridWolrd environment, the agent try to figure out the optimal (shortest) path to the target.   
 Running **./Temporal-Difference/train_TD.py** will generate an TD(Q-learning) agent by default.  
 
-2. REINFORCE  
+2. DQN  
+![image](https://github.com/borgwang/reinforce_py/raw/master/imgs/cartpole.png)
+In CartPole, a pole is attached by an un-actuated joint to a cart, which move along a track. The agent contrl the cart by moving left or right in order to ballance the pole.
+   
+
+3. REINFORCE  
 Run **./REINFORCE/train_REINFORCE.py** to train an agent of playing Pong.  
 Run **./REINFORCE/evaluation.py** to test a trained agent.  
 
