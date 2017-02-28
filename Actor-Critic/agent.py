@@ -102,7 +102,7 @@ class ActorCritic(object):
                 # group all assignment operations together
                 self.target_network_update = tf.group(*self.target_network_update)
 
-    def init_var(self):
+    def init_model(self):
         # initialize variables
         init_op = tf.global_variables_initializer()
         self.sess.run(init_op)

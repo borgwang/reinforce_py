@@ -56,7 +56,7 @@ class REINFORCE(object):
             # train operation (apply gradient)
             self.train_op = self.optimizer.apply_gradients(self.gradient)
 
-    def init_var(self):
+    def init_model(self):
         # initialize variables
         init_op = tf.initialize_all_variables()
         self.sess.run(init_op)

@@ -28,7 +28,7 @@ def main():
         mean_rewards = float(args.model_path.split('/')[-1].split('_')[0])
     else:
         # build a new model
-        agent.init_var()
+        agent.init_model()
         ep_base = 0
         mean_rewards = None
 
@@ -72,7 +72,7 @@ def main():
                 print 'Model saving...'
                 # save model
                 if not os.path.isdir(args.save_path):
-                    os.path.makedirs(args.save_path)
+                    os.makedirs(args.save_path)
                 saver.save(agent.sess,
                     args.save_path+str(round(mean_rewards,2))+'_'+str(ep_base+ep+1))
 

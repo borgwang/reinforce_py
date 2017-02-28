@@ -38,7 +38,7 @@ def main():
         mean_rewards = float(args.model_path.split('/')[-1].split('_')[0])
     else:
         # build a new model
-        agent.init_var()
+        agent.init_model()
         ep_base = 0
         mean_rewards = None
 

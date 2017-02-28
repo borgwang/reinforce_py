@@ -80,7 +80,7 @@ class DQN():
             # group all update together
             self.update_target_network = tf.group(*self.update_target_network)
 
-    def init_var(self):
+    def init_model(self):
         # initialize variables
         init_op = tf.global_variables_initializer()
         self.sess.run(init_op)
