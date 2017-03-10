@@ -94,7 +94,6 @@ def main():
             next_state, reward, done, _ = env.step(action)
 
             total_rewards += reward
-            
             agent.store_experience(state, action, reward, next_state, done)
 
             agent.update_model()
@@ -104,7 +103,6 @@ def main():
         reward_history.append(total_rewards)
         print 'Ep%d  reward:%d' % (episode+1, total_rewards)
 
-    print 'Rewards: ', reward_history
     print 'Average rewards: ', np.mean(reward_history)
 
 

@@ -70,7 +70,7 @@ class DDPG(object):
             with tf.variable_scope('target_critic_network'):
                 self.target_critic_outputs = self.critic_network(self.next_states, self.target_actor_outputs)
 
-            next_action_scores = tf.stop_gradient(self.target_critic_outputs)[:,0] * self.mask
+            next_action_scores = self.target_critic_outputs[:,0] * self.mask
             self.target_q = self.rewards + self.discount_factor * next_action_scores
 
         with tf.name_scope('compute_gradients'):
@@ -103,6 +103,7 @@ class DDPG(object):
             self.ou_noise = self.noise_var.assign_sub(self.noise_theta * self.noise_var - noise_random)
 
         with tf.name_scope('update_target_network'):
+            # Soft update (Target = 0.01 * Source + 0.99 * Target)
             self.target_network_update = []
             # get parameters
             actor_parameters = tf.get_collection(

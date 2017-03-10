@@ -38,8 +38,6 @@ class ActorCritic(object):
                 self.logp = self.actor_network(self.input_state)
             with tf.variable_scope('critic_network'):
                 self.state_value = self.critic_network(self.input_state)
-            with tf.variable_scope('target_critic_network'):
-                self.target_state_value = self.critic_network(self.input_state)
 
             # get network parameters
             actor_parameters = tf.get_collection(
@@ -47,60 +45,35 @@ class ActorCritic(object):
             critic_parameters = tf.get_collection(
                     tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic_network')
 
-            # self.discounted_rewards = tf.placeholder(tf.float32, [None, 1])
             self.taken_action = tf.placeholder(tf.int32, [None,])
-
-            self.s_target_v = tf.placeholder(tf.float32, [None, 1])
-            self.t_target_v = tf.placeholder(tf.float32, [None, 1])
+            self.discounted_rewards = tf.placeholder(tf.float32, [None,1])
 
             # optimizer
-            self.optimizer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.9)
+            self.optimizer = tf.train.RMSPropOptimizer(learning_rate=1e-4)
             # actor loss
             self.actor_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(self.logp, self.taken_action)
             # advantage
-            self.advantages = (self.s_target_v - self.state_value)[:,0]
+            self.advantages = (self.discounted_rewards- self.state_value)[:,0]
             # actor gradient
             actor_gradients = tf.gradients(self.actor_loss, actor_parameters, self.advantages)
             self.actor_gradients = zip(actor_gradients, actor_parameters)
 
-            # policy gradient
-            for i, (grad, var) in enumerate(self.actor_gradients):
-                if grad is not None:
-                    # pg_grad = grad * self.advantages
-                    # gradient clipping
-                    self.actor_gradients[i] = (tf.clip_by_value(
-                            grad, -self.max_gradient, self.max_gradient), var)
-
             # critic loss
-            self.critic_loss = tf.reduce_mean(tf.square(self.t_target_v - self.state_value))
+            self.critic_loss = tf.reduce_mean(tf.square(self.discounted_rewards - self.state_value))
             # critic gradient
             self.critic_gradients = self.optimizer.compute_gradients(self.critic_loss, critic_parameters)
+
+            self.gradients = self.actor_gradients + self.critic_gradients
+
             # clip gradient
-            for i, (grad, var) in enumerate(self.critic_gradients):
+            for i, (grad, var) in enumerate(self.gradients):
                 if grad is not None:
-                    self.critic_gradients[i] = (tf.clip_by_value(
+                    self.gradients[i] = (tf.clip_by_value(
                             grad, -self.max_gradient, self.max_gradient), var)
 
             with tf.name_scope('train_actor_critic'):
                 # train operation
-                self.train_actor = self.optimizer.apply_gradients(self.actor_gradients)
-                self.train_critic = self.optimizer.apply_gradients(self.critic_gradients)
-
-            # update targer network parameters
-            with tf.name_scope("update_target_network"):
-                self.target_network_update = []
-
-                # same for the critic network
-                critic_parameters = tf.get_collection(
-                        tf.GraphKeys.TRAINABLE_VARIABLES, scope="critic_network")
-                target_critic_parameters = tf.get_collection(
-                        tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_critic_network")
-                for v_source, v_target in zip(critic_parameters, target_critic_parameters):
-                    # this is equivalent to target = (1-alpha) * target + alpha * source
-                    update_op = v_target.assign_sub(0.01 * (v_target - v_source))
-                    self.target_network_update.append(update_op)
-                # group all assignment operations together
-                self.target_network_update = tf.group(*self.target_network_update)
+                self.train_op = self.optimizer.apply_gradients(self.gradients)
 
     def init_model(self):
         # initialize variables
@@ -121,10 +94,7 @@ class ActorCritic(object):
     def update_model(self):
         state_buffer = np.array(self.state_buffer)
         action_buffer = np.array(self.action_buffer)
-        # discounted_rewards_buffer = np.vstack(self.reward_discount())
-        reward_buffer = np.vstack(self.reward_buffer)
-        next_state_buffer = np.array(self.next_state_buffer)
-        done_buffer = np.vstack(self.done_buffer)
+        discounted_rewards_buffer = np.vstack(self.reward_discount())
 
         ep_steps = len(action_buffer)
         shuffle_index = np.arange(ep_steps)
@@ -137,37 +107,14 @@ class ActorCritic(object):
             # get batch from buffer
             input_state = state_buffer[batch_index]
             taken_action = action_buffer[batch_index]
-            # discounted_rewards = discounted_rewards_buffer[batch_index]
-            reward = reward_buffer[batch_index]
-            next_state = next_state_buffer[batch_index]
-            done = done_buffer[batch_index]
-
-            s_target_next_v = self.sess.run(self.state_value, feed_dict={
-                self.input_state: next_state
-            })
-            # s_target_v = discounted_rewards + (self.gamma * s_target_next_v) * -done
-            s_target_v = reward + (self.gamma * s_target_next_v) * -done
-
-            t_target_next_v = self.sess.run(self.target_state_value, feed_dict={
-                self.input_state: next_state
-            })
-            # t_target_v = discounted_rewards + (self.gamma * t_target_next_v) * -done
-            t_target_v = reward + (self.gamma * t_target_next_v) * -done
+            discounted_rewards = discounted_rewards_buffer[batch_index]
 
             # train!
-            self.sess.run([
-                self.train_actor,
-                self.train_critic
-            ], feed_dict={
+            self.sess.run(self.train_op, feed_dict={
                 self.input_state: input_state,
                 self.taken_action: taken_action,
-                # self.discounted_rewards: discounted_rewards,
-                self.s_target_v: s_target_v,
-                self.t_target_v: t_target_v
+                self.discounted_rewards: discounted_rewards
             })
-
-        # update target network
-        self.sess.run(self.target_network_update)
 
         # cleanup job
         self.buffer_reset()

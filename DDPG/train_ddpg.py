@@ -78,9 +78,11 @@ def main():
     if args.model_path is not None:
         # reuse saved model
         saver.restore(agent.sess, args.model_path)
+        ep_base = int(args.model_path.split('_')[-1])
     else:
         # build a new model
         agent.init_model()
+        ep_base = 0
 
     MAX_EPISODES = 10000
     MAX_STEPS = 1000
@@ -120,17 +122,11 @@ def main():
             mean_rewards = np.mean(reward_history)
 
             # logging
-            print 'Ep%d ' % (episode)
+            print 'Ep%d ' % (episode + 1)
             print 'Mean reward: %.2f' % mean_rewards
-            if mean_rewards > 1900.0:
-                print 'Problem solved!'
-                print 'Saving model...'
-                if not os.path.isdir(args.save_path):
-                    os.makedirs(args.save_path)
-                saver.save(agent.sess,
-                    args.save_path + str(episode)+'_'+str(round(mean_rewards,2)))
-                return
-
+            if not os.path.isdir(args.save_path):
+                os.makedirs(args.save_path)
+            saver.save(agent.sess, args.save_path+str(episode)+'_'+str(round(mean_rewards,2)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

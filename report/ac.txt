@@ -1,0 +1,117 @@
+Experimental report of Actor-Critic Algorithm
+Game: Pong
+
+___
+
+Experiment 1.1 - Target Network
+
+Try to figure out the effect of target network.
+We use a target critic network to both calculate target_state_value (update critic net) and advantage(compute pg gradients).
+
+{
+RMSPOptimizer:
+	learning_rate = 1e-4,
+	decay_rate = 0.9
+
+Batch stochastic gradient decent:
+	batch_size = 32
+
+*Target network:
+	Target_critic_network = True
+	target_network_update_rate = 0.01
+
+Bootstraping:
+	True and use discounted reward
+	Target_state_value = discounted_r + gamma * next_state_value
+	critic_loss = Target_state_value - state_value
+
+Gradient cliping:
+	max_gradient = 5
+	clip by value
+}
+
+Experiment result:
+After 10000 epidoes, the average reward stuck at -2.
+During Training, it took a few episodes from -21 to -16 (about 300ep).
+After -16, training make slowly improvement per 1000ep
+
+___
+
+Experiment 1.2 Target Network
+
+In this experiment we still use a target critic network. Different from Exp1.1, here we use the target critic network only to calculate target_state_value(update critic network). The Advantage is computed using source critic network.
+
+{
+RMSPOptimizer:
+	learning_rate = 1e-4,
+	decay_rate = 0.9
+
+Batch stochastic gradient decent:
+	batch_size = 32
+
+*Target network:
+	Target_critic_network = True
+	target_network_update_rate = 0.01
+
+Bootstraping:
+	True and use discounted reward
+	Target_state_value = discounted_r + gamma * next_state_value
+	critic_loss = Target_state_value - state_value
+
+Gradient cliping:
+	max_gradient = 5
+	clip by value
+}
+
+Exp results:
+The result of this expriment is similat to Exp1.1. After training for 10000 episodes, the average reward stuck at around -1.
+Guess the policy flow into some local optimal.
+
+______
+
+Exp1.3 rewards or discounted rewards
+
+The only difference between Exp1.2 and Exp1.3 is that the latter use a origin reward (rather than a discounted reward in Exp1.2) to calculate target state value
+
+{
+Bootstraping:
+	True and use origin reward r(0,-1,+1)
+	Target_state_value = r + gamma * next_state_value
+}
+
+Exp results:
+The result is pretty bad :(
+After 500 ep training, the average reawrd still stuck at around -16
+It seems using original reward instead of discounted reward is not a good idea.
+
+
+______
+
+Exp2 Exploration
+
+In the above experiments, the agent seems to stuck in some local optisim. In this experiment, we add some exploration to our action selection and see if it helps.
+
+Initial explore probability = 0.1
+Final explore probability = 0
+episodes with exploration = 5000
+
+That is, when selecting actions, the agent takes a random action under an exploration probability. This probability decrease linearly in the first 5000 ep of the training. After 5000 ep, the agent select action accoding to it actor network output.
+
+{
+Target network:
+	False
+
+Exploration:
+	Initial exp probability = 0.1
+	Final exp probability = 0
+	episodes with exp= 5000
+}
+
+Reuslt:
+After about 500 ep training, the agent get a score of average -15. Then it can hardly make any progress. The average score is still about -15 when reach max episode(10000).
+WTF!!!
+
+___
+
+
+There may be some bugs in the implementation of bootstrapping... THus agent always stucks at some local optimal...
