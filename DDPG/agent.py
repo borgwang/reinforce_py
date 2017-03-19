@@ -138,6 +138,7 @@ class DDPG(object):
         ], {
             self.states: states
         })
+        print 'noiseless action: ', action
         # add noise for exploration
         action = action + ou_noise if explore else action
 

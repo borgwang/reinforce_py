@@ -5,10 +5,11 @@ from collections import deque
 
 # Hyper parameters
 class DQN():
-    def __init__(self, env):
+    def __init__(self, env, double_q):
         # Init replay buffer
         self.replay_buffer = deque()
         self.memory_size = 1000
+
         # Init parameters
         self.global_step = 0
         self.epsilon = 0.5
@@ -20,6 +21,8 @@ class DQN():
         self.learning_rate = 1e-4
 
         self.batch_size = 32
+
+        self.double_q = double_q
 
     def network(self, input_state):
         hidden_unit = 50
@@ -122,11 +125,17 @@ class DQN():
         minibatch_t = np.array(minibatch).T
         s_batch, a_batch, r_batch, next_s_batch, done_batch = minibatch_t.tolist()
 
-        # next_state_Q_value_batch = self.sess.run(self.output_Q,
-        #             feed_dict={self.input_state:next_state_batch})
 
-        next_state_Q_value_batch = \
+        next_s_all_action_Q = \
                 self.sess.run(self.target_output_Q, {self.input_state:next_s_batch})
+        next_s_Q_batch = np.max(next_s_all_action_Q, 1)
+
+        if self.double_q:
+            # use sourse network to selcete best action a*
+            next_s_action_batch = np.argmax(
+                self.sess.run(self.output_Q, {self.input_state:next_s_batch}), 1)
+            # then use target network to compute Q(s', a*)
+            next_s_Q_batch = next_s_all_action_Q[np.arange(self.batch_size), next_s_action_batch]
 
         # Calculate target_Q_batch
         target_Q_batch = []
@@ -135,7 +144,7 @@ class DQN():
             if done_state:
                 target_Q_batch.append(r_batch[i])
             else:
-                target_Q_batch.append(r_batch[i] + self.gamma * np.max(next_state_Q_value_batch[i]))
+                target_Q_batch.append(r_batch[i] + self.gamma * next_s_Q_batch[i])
 
         # Run the optimizer. Train the network
         self.sess.run(self.optimizer, {

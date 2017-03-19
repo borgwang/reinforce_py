@@ -4,7 +4,6 @@ import argparse
 import tensorflow as tf
 import numpy as np
 import gym
-
 from agent import DDPG
 
 
@@ -35,9 +34,9 @@ def main():
 
         # use tanh to bound the action
         w3 = tf.get_variable("w3", [h2_dim, action_dim],
-                       initializer=tf.contrib.layers.xavier_initializer())
+                       initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
         b3 = tf.get_variable("b3", [action_dim],
-                       initializer=tf.constant_initializer(0))
+                       initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
 
         # we assume actions range from [-1, 1]
         # you can scale action outputs with any constant here
@@ -64,9 +63,9 @@ def main():
         h2 = tf.nn.relu(tf.matmul(h1_concat, w2) + b2)
 
         w3 = tf.get_variable("w3", [h2_dim, 1],
-                           initializer=tf.contrib.layers.xavier_initializer())
+                           initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
         b3 = tf.get_variable("b3", [1],
-                           initializer=tf.constant_initializer(0))
+                           initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
         q = tf.matmul(h2, w3) + b3
         return q
 
@@ -90,7 +89,6 @@ def main():
     for episode in xrange(MAX_EPISODES):
         # env init
         state = env.reset()
-        env.render
 
         for step in xrange(MAX_STEPS):
             action = agent.sample_action(state[np.newaxis,:], explore=True)

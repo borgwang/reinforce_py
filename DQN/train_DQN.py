@@ -17,7 +17,7 @@ def main():
 
     # Initial OpenAI Gym env and DQN agent
     env = gym.make("CartPole-v0")
-    agent = DQN(env)
+    agent = DQN(env, double_q=False)
     agent.construct_model(args.gpu)
 
     saver = tf.train.Saver(max_to_keep=2)
