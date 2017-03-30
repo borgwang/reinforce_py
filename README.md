@@ -45,17 +45,20 @@ In GridWolrd environment, the TD agent try to figure out the optimal (shortest) 
 2. DQN  
 DQN is a deep reinforcement learning architecture proposed by DeepMind in 2013. They used this architecture to play Atari games and obtained a hunman-level performance.  
 Here we implement a simple version of DQN to solve game of CartPole.  
-Related paper:
+Related papers:  
     * [Mnih et al., 2013](https://arxiv.org/pdf/1312.5602.pdf)   
-    * [Mnih et al., 2015](http://www.nature.com/nature/journal/v518/n7540/pdf/nature14236.pdf)
+    * [Mnih et al., 2015](http://www.nature.com/nature/journal/v518/n7540/pdf/nature14236.pdf)  
 
 3. REINFORCE & Actor-Critic  
 Both of these alogorithm belong to Policy Gradient methods, which directly parameterize the policy rather than a state value function.  
 For more details about policy gradient algorithms, see Chap 13 of  [Reinforcement Learning: An Introduction 2nd Edition](http://webdocs.cs.ualberta.ca/~sutton/book/the-book.html)  
 We use REINFORCE and Actor-Critic Methods to solve game of Pong.  
 
-4. DDPG
-Deep Deterministic Policy Gradient is base on Deterministic Policy Gradient methods proposed by Sliver et al., 2014. DDPG is a policy-based RL Algorithm which can solve high-dimensional (even continuous) action spaces tasks.  
+4. DDPG  
+Deep Deterministic Policy Gradient is base on [Deterministic Policy Gradient](http://www.jmlr.org/proceedings/papers/v32/silver14.pdf) methods proposed by Sliver et al., 2014. DDPG is a policy-based RL Algorithm which can solve high-dimensional (even continuous) action spaces tasks.  
+Related papers:  
+    * [Sliver te al., 2014](http://www.jmlr.org/proceedings/papers/v32/silver14.pdf)  
+    * [Lillicrap, Timothy P., et al., 2015](https://arxiv.org/pdf/1509.02971.pdf)  
 We use DDPG to solve a continuous control task Walker2d.   
 
 ## LICENCE  
