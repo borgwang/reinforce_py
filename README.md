@@ -1,12 +1,18 @@
 # Reinforcement learning in Python  
 
-Implementations of some RL algorithms in [Reinforcement Learning: An Introduction](http://webdocs.cs.ualberta.ca/~sutton/book/the-book.html) using Python.  
+Implementations of popular RL algorithms using Python.  
+* [Tabular TD-Learning](https://github.com/borgwang/reinforce_py/tree/master/Temporal-Difference)  
+* [DQN](https://github.com/borgwang/reinforce_py/tree/master/DQN)  
+* [REINFORCE](https://github.com/borgwang/reinforce_py/tree/master/REINFORCE)  
+* [Actor-Critic](https://github.com/borgwang/reinforce_py/tree/master/Actor-Critic)  
+* [DDPG](https://github.com/borgwang/reinforce_py/tree/master/DDPG)  
 
 
 ## Requirement  
 * Python 2.7  
 * [numpy](http://www.numpy.org/)   
 * [tensorflow](http://www.tensorflow.org)  
+* [gym](https://gym.openai.com)  
 
 ## Environment setting  
 1. GridWolrd  
@@ -25,6 +31,11 @@ We will solve the game of Pong using REINFORCE and Actor-Critic Algorithms.
 In CartPole, a pole is attached by an un-actuated joint to a cart, which move along a track. The agent contrl the cart by moving left or right in order to ballance the pole.  
 We will solve CartPole using DQN Algorithm.  
 
+4. Walker2d
+![image](https://github.com/borgwang/reinforce_py/raw/master/imgs/walker2d.png)  
+Walker2d is a continuous control task base on Mujoco. The goal is to make a two-dimensional bipedal robot walk forward as fast as possible.
+We solve the Walker2d using DDPG Algorithm.
+
 ## Algorithms  
 1. Temporal Difference  
 Temporal Difference (TD) learning is a prediction-based reinforcement learning alogorithm. It is a combination of Monte Carlo (MC) ideas and Dynamic Programming (DP) ideas.   
@@ -42,6 +53,10 @@ Related paper:
 Both of these alogorithm belong to Policy Gradient methods, which directly parameterize the policy rather than a state value function.  
 For more details about policy gradient algorithms, see Chap 13 of  [Reinforcement Learning: An Introduction 2nd Edition](http://webdocs.cs.ualberta.ca/~sutton/book/the-book.html)  
 We use REINFORCE and Actor-Critic Methods to solve game of Pong.  
+
+4. DDPG
+Deep Deterministic Policy Gradient is base on Deterministic Policy Gradient methods proposed by Sliver et al., 2014. DDPG is a policy-based RL Algorithm which can solve high-dimensional (even continuous) action spaces tasks.  
+We use DDPG to solve a continuous control task Walker2d. 
 
 ## LICENCE  
 MIT
