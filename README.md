@@ -31,7 +31,7 @@ We will solve the game of Pong using REINFORCE and Actor-Critic Algorithms.
 In CartPole, a pole is attached by an un-actuated joint to a cart, which move along a track. The agent contrl the cart by moving left or right in order to ballance the pole.  
 We will solve CartPole using DQN Algorithm.  
 
-4. Walker2d
+4. Walker2d  
 ![image](https://github.com/borgwang/reinforce_py/raw/master/imgs/walker2d.png)  
 Walker2d is a continuous control task base on Mujoco. The goal is to make a two-dimensional bipedal robot walk forward as fast as possible.
 We solve the Walker2d using DDPG Algorithm.
@@ -56,7 +56,7 @@ We use REINFORCE and Actor-Critic Methods to solve game of Pong.
 
 4. DDPG
 Deep Deterministic Policy Gradient is base on Deterministic Policy Gradient methods proposed by Sliver et al., 2014. DDPG is a policy-based RL Algorithm which can solve high-dimensional (even continuous) action spaces tasks.  
-We use DDPG to solve a continuous control task Walker2d. 
+We use DDPG to solve a continuous control task Walker2d.   
 
 ## LICENCE  
 MIT
