@@ -9,7 +9,7 @@ from agent import DQN
 
 def main():
     # Hyper parameters
-    MAX_EPISODE = 2000 # training episode
+    MAX_EPISODE = 10000 # training episode
     INITIAL_EPSILON = 0.5   # starting value of epsilon
     FINAL_EPSILON = 0.01    # final value of epsilon
     MAX_STEP = 200
@@ -67,16 +67,14 @@ def main():
             print 'Episode:', ep+1, ' Average Reward:', mean_rewards
             print 'Global steps:', agent.global_step
 
-            if mean_rewards > 195:
-                print 'Problem solved'
-                print 'Model saving...'
+            # if mean_rewards > 195:
+            #    print 'Problem solved'
+            #    print 'Model saving...'
                 # save model
-                if not os.path.isdir(args.save_path):
-                    os.makedirs(args.save_path)
-                saver.save(agent.sess,
-                    args.save_path+str(round(mean_rewards,2))+'_'+str(ep_base+ep+1))
-
-                return
+            if not os.path.isdir(args.save_path):
+                os.makedirs(args.save_path)
+            saver.save(agent.sess,
+                args.save_path+str(round(mean_rewards,2))+'_'+str(ep_base+ep+1))
 
 
 if __name__ == '__main__':

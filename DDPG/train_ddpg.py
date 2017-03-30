@@ -4,73 +4,14 @@ import argparse
 import tensorflow as tf
 import numpy as np
 import gym
+
 from agent import DDPG
 
 
 def main():
-    env = gym.make('InvertedDoublePendulum-v1')
+    env = gym.make('Walker2d-v1')
 
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
-
-    reward_history = deque(maxlen=100)
-
-    def actor_network(states):
-        h1_dim = 400
-        h2_dim = 300
-
-        # define policy neural network
-        w1 = tf.get_variable("w1", [state_dim, h1_dim],
-                       initializer=tf.contrib.layers.xavier_initializer())
-        b1 = tf.get_variable("b1", [h1_dim],
-                       initializer=tf.constant_initializer(0))
-        h1 = tf.nn.relu(tf.matmul(states, w1) + b1)
-
-        w2 = tf.get_variable("w2", [h1_dim, h2_dim],
-                       initializer=tf.contrib.layers.xavier_initializer())
-        b2 = tf.get_variable("b2", [h2_dim],
-                       initializer=tf.constant_initializer(0))
-        h2 = tf.nn.relu(tf.matmul(h1, w2) + b2)
-
-        # use tanh to bound the action
-        w3 = tf.get_variable("w3", [h2_dim, action_dim],
-                       initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
-        b3 = tf.get_variable("b3", [action_dim],
-                       initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
-
-        # we assume actions range from [-1, 1]
-        # you can scale action outputs with any constant here
-        a = tf.nn.tanh(tf.matmul(h2, w3) + b3)
-        return a
-
-    def critic_network(states, action):
-        h1_dim = 400
-        h2_dim = 300
-
-        # define policy neural network
-        w1 = tf.get_variable("w1", [state_dim, h1_dim],
-                           initializer=tf.contrib.layers.xavier_initializer())
-        b1 = tf.get_variable("b1", [h1_dim],
-                           initializer=tf.constant_initializer(0))
-        h1 = tf.nn.relu(tf.matmul(states, w1) + b1)
-        # skip action from the first layer
-        h1_concat = tf.concat(1, [h1, action])
-
-        w2 = tf.get_variable("w2", [h1_dim + action_dim, h2_dim],
-                           initializer=tf.contrib.layers.xavier_initializer())
-        b2 = tf.get_variable("b2", [h2_dim],
-                           initializer=tf.constant_initializer(0))
-        h2 = tf.nn.relu(tf.matmul(h1_concat, w2) + b2)
-
-        w3 = tf.get_variable("w3", [h2_dim, 1],
-                           initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
-        b3 = tf.get_variable("b3", [1],
-                           initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
-        q = tf.matmul(h2, w3) + b3
-        return q
-
-
-    agent = DDPG(actor_network, critic_network, state_dim, action_dim)
+    agent = DDPG(env)
     agent.construct_model(args.gpu)
 
     saver = tf.train.Saver(max_to_keep=1)
@@ -83,48 +24,55 @@ def main():
         agent.init_model()
         ep_base = 0
 
-    MAX_EPISODES = 10000
-    MAX_STEPS = 1000
+    MAX_EPISODES = 100000
+    TEST = 10
 
     for episode in xrange(MAX_EPISODES):
         # env init
         state = env.reset()
-
-        for step in xrange(MAX_STEPS):
+        total_rewards = 0
+        for step in xrange(env.spec.timestep_limit):
             action = agent.sample_action(state[np.newaxis,:], explore=True)
             # act
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _ = env.step(action[0])
+            total_rewards += reward
 
             agent.store_experience(state, action, reward, next_state, done)
 
             agent.update_model()
             # shift
             state = next_state
-            if done: break
+            if done:
+                print 'Ep %d global_steps: %d Reward: %.2f' % (episode+1, agent.global_steps, total_rewards)
+                # reset ou noise
+                agent.ou.reset()
+                break
 
-        # Evaluation per 500 ep
-        if episode % 500 == 0:
-            total_steps = 0
-            for ep_eval in xrange(100):
-                total_rewards = 0
+        # Evaluation per 100 ep
+        if episode % 100 == 0 and episode > 100:
+            total_rewards = 0
+            for ep_eval in xrange(TEST):
                 state = env.reset()
-                for step_eval in xrange(MAX_STEPS):
+                for step_eval in xrange(env.spec.timestep_limit):
                     action = agent.sample_action(state[np.newaxis,:], explore=False)
-                    next_state, reward, done, _ = env.step(action)
+                    next_state, reward, done, _ = env.step(action[0])
                     total_rewards += reward
                     state = next_state
                     if done:
                         break
-                reward_history.append(total_rewards)
 
-            mean_rewards = np.mean(reward_history)
+            mean_rewards = total_rewards / TEST
 
             # logging
-            print 'Ep%d ' % (episode + 1)
+            print
+            print 'Episode: %d' % (episode+1)
+            print 'Gloabal steps: %d' % agent.global_steps
             print 'Mean reward: %.2f' % mean_rewards
+            print
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)
             saver.save(agent.sess, args.save_path+str(episode)+'_'+str(round(mean_rewards,2)))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -5,7 +5,7 @@ from collections import deque
 
 # Hyper parameters
 class DQN():
-    def __init__(self, env, double_q):
+    def __init__(self, env, double_q=False):
         # Init replay buffer
         self.replay_buffer = deque()
         self.memory_size = 1000
@@ -61,7 +61,7 @@ class DQN():
             self.input_action = tf.placeholder(tf.float32, [None, self.action_dim])
             self.target_Q = tf.placeholder(tf.float32, [None])
             # Q value of the selceted action
-            action_Q = tf.reduce_sum(tf.mul(self.output_Q, self.input_action), reduction_indices=1)
+            action_Q = tf.reduce_sum(tf.multiply(self.output_Q, self.input_action), reduction_indices=1)
 
             self.loss = tf.reduce_mean(tf.square(self.target_Q - action_Q))
             self.optimizer = tf.train.RMSPropOptimizer(self.learning_rate, self.decay_rate).minimize(self.loss)

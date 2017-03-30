@@ -37,7 +37,7 @@ ___
 Experiments 3 Reguralization
 
 We add regularization to the critic network, it turns out that this even hurts the learning. (the agent can hardly make some progress) We suspect that in DRL context with a large state space, the network is almost impossiable to overfitting. Thus regularization did not benifit learning.
-	
+
 TODO:
 regularizate actor network?
 
@@ -48,3 +48,14 @@ Experiment 4	Learning rate of the optimizer
 We use a AdamOptimizer to train both actor network and critic network. In this experimetn we test the effects of different learning rates.
 
 actor_1e-4, critic_1e-3 > both_1e-4
+
+___
+
+Experiment 5 Batch Normalization
+
+After some control experiments, we found that using batch normalization only in actor network works better.
+
+Note that when apply batch normalization, we should switch the 'is_training' flag while sampling action and training model.
+
+Also note that the batch_norm parameters of target networks should not be update while apply soft updating.
+  
