@@ -12,7 +12,6 @@ def main():
     MAX_EPISODE = 10000 # training episode
     INITIAL_EPSILON = 0.5   # starting value of epsilon
     FINAL_EPSILON = 0.01    # final value of epsilon
-    MAX_STEP = 200
     TEST_EPISODE = 100
 
     # Initial OpenAI Gym env and DQN agent
@@ -36,7 +35,7 @@ def main():
     for ep in xrange(MAX_EPISODE):
         state = env.reset()
 
-        for step in xrange(MAX_STEP):
+        for step in xrange(env.spec.timestep_limit):
             # pick action
             action = agent.sample_action(state, policy='egreedy')
             # Execution action.
@@ -58,7 +57,7 @@ def main():
             total_reward = 0
             for i in xrange(TEST_EPISODE):
                 state = env.reset()
-                for j in xrange(MAX_STEP):
+                for j in xrange(env.spec.timestep_limit):
                     action = agent.sample_action(state, policy='greedy')
                     state, reward, done, _ = env.step(action)
                     total_reward += reward
@@ -67,10 +66,6 @@ def main():
             print 'Episode:', ep+1, ' Average Reward:', mean_rewards
             print 'Global steps:', agent.global_step
 
-            # if mean_rewards > 195:
-            #    print 'Problem solved'
-            #    print 'Model saving...'
-                # save model
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)
             saver.save(agent.sess,
