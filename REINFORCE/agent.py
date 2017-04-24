@@ -6,7 +6,7 @@ class REINFORCE(object):
         self.input_dim = input_dim
         self.hidden_units = hidden_units
         self.action_dim = action_dim
-        self.discount_factor = 0.99
+        self.gamma = 0.99
         self.max_gradient = 5
 
         # buffer
@@ -43,7 +43,8 @@ class REINFORCE(object):
             # optimizer
             self.optimizer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99)
             # loss
-            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(self.logp, self.taken_actions))
+            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
+                    logits=self.logp, labels=self.taken_actions))
             # gradient
             self.gradient = self.optimizer.compute_gradients(self.loss)
             # policy gradient
@@ -55,11 +56,6 @@ class REINFORCE(object):
                     self.gradient[i] = (pg_grad, var)
             # train operation (apply gradient)
             self.train_op = self.optimizer.apply_gradients(self.gradient)
-
-    def init_model(self):
-        # initialize variables
-        init_op = tf.initialize_all_variables()
-        self.sess.run(init_op)
 
     def sample_action(self, state):
         def softmax(x):
@@ -103,7 +99,7 @@ class REINFORCE(object):
         for t in range(len(r))[::-1]:
             if r[t] != 0:
                 running_add = 0 # game boundary. reset the running add
-            running_add = r[t] + running_add * self.discount_factor
+            running_add = r[t] + running_add * self.gamma
             d_r[t] += running_add
         # standardize the rewards
         d_r -= np.mean(d_r)

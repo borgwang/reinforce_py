@@ -7,27 +7,24 @@ import numpy as np
 from agent import DQN
 
 
-def main():
+def main(args):
     # Hyper parameters
     MAX_EPISODE = 10000 # training episode
     INITIAL_EPSILON = 0.5   # starting value of epsilon
     FINAL_EPSILON = 0.01    # final value of epsilon
     TEST_EPISODE = 100
 
-    # Initial OpenAI Gym env and DQN agent
     env = gym.make("CartPole-v0")
     agent = DQN(env, double_q=False)
     agent.construct_model(args.gpu)
 
     saver = tf.train.Saver(max_to_keep=2)
     if args.model_path is not None:
-        # reuse saved model
         saver.restore(agent.sess, args.model_path)
         ep_base = int(args.model_path.split('_')[-1])
         mean_rewards = float(args.model_path.split('/')[-1].split('_')[0])
     else:
-        # build a new model
-        agent.init_model()
+        agent.sess.run(tf.global_variables_initializer())
         ep_base = 0
         mean_rewards = None
 
@@ -71,9 +68,7 @@ def main():
             saver.save(agent.sess,
                 args.save_path+str(round(mean_rewards,2))+'_'+str(ep_base+ep+1))
 
-
-if __name__ == '__main__':
-
+def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', default=None, help=
                 'Whether to use a saved model. (*None|model path)')
@@ -83,6 +78,8 @@ if __name__ == '__main__':
                 'Log and save model every x episodes')
     parser.add_argument('--gpu', default=-1, help=
                 'running on a specify gpu, -1 indicates using cpu')
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    main()
+
+if __name__ == '__main__':
+    main(args_parse())

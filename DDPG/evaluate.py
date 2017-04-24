@@ -7,7 +7,7 @@ import gym
 from agent import DDPG
 
 
-def main():
+def main(args):
     env = gym.make('Walker2d-v1')
 
     reward_history = []
@@ -21,7 +21,7 @@ def main():
         saver.restore(agent.sess, args.model_path)
     else:
         # build a new model
-        agent.init_model()
+        agent.sess.run(tf.global_variables_initializer())
 
     for episode in xrange(args.ep):
         # env init
@@ -46,8 +46,7 @@ def main():
 
     print 'Average rewards: ', np.mean(reward_history)
 
-
-if __name__ == '__main__':
+def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', default=None, help=
             'Whether to use a saved model. (*None|model path)')
@@ -57,6 +56,8 @@ if __name__ == '__main__':
             'running on a specify gpu, -1 indicates using cpu')
     parser.add_argument('--ep', default=10, help=
             'Test episodes')
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    main()
+
+if __name__ == '__main__':
+    main(args_parse())

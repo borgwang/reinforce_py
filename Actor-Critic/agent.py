@@ -12,7 +12,7 @@ class ActorCritic(object):
         self.discount_factor = 0.99
         self.max_gradient = 5
         # counter
-        self.train_episode = 0
+        self.ep_count = 0
         # buffer init
         self.buffer_reset()
 
@@ -75,11 +75,6 @@ class ActorCritic(object):
                 # train operation
                 self.train_op = self.optimizer.apply_gradients(self.gradients)
 
-    def init_model(self):
-        # initialize variables
-        init_op = tf.global_variables_initializer()
-        self.sess.run(init_op)
-
     def sample_action(self, state):
         def softmax(x):
             max_x = np.amax(x)
@@ -119,7 +114,7 @@ class ActorCritic(object):
         # cleanup job
         self.buffer_reset()
 
-        self.train_episode += 1
+        self.ep_count += 1
 
     def store_rollout(self, state, action, reward, next_state, done):
         self.action_buffer.append(action)

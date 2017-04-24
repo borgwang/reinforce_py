@@ -2,9 +2,11 @@ import argparse
 import gym
 import numpy as np
 import tensorflow as tf
-from agent import REINFORCE
 
-def main():
+from agent import REINFORCE
+from utils import *
+
+def main(args):
     # preprocess input state
     def preprocess(obser):
         '''preprocess 210x160x3 frame into 6400(80x80) flat vector'''
@@ -59,12 +61,14 @@ def main():
 
         print 'Ep%s  Reward: %s ' % (ep+1, total_rewards)
 
-if __name__ == '__main__':
+def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', default=None,
             help='Whether to use a saved model. (*None|model path)')
     parser.add_argument('--gpu', default=-1,
             help='running on a specify gpu, -1 indicates using cpu')
     parser.add_argument('--ep', default=1, help='Test episodes')
-    args = parser.parse_args()
-    main()
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    main(args_parse())

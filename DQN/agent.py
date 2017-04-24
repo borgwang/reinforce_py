@@ -3,12 +3,11 @@ import numpy as np
 import random
 from collections import deque
 
-# Hyper parameters
 class DQN():
     def __init__(self, env, double_q=False):
         # Init replay buffer
-        self.replay_buffer = deque()
-        self.memory_size = 1000
+        self.memory_size = 10000
+        self.replay_buffer = deque(maxlen=self.memory_size)
 
         # Init parameters
         self.global_step = 0
@@ -19,10 +18,10 @@ class DQN():
         self.gamma = 0.99
         self.decay_rate = 0.99
         self.learning_rate = 1e-4
-
         self.batch_size = 32
 
         self.double_q = double_q
+        self.target_network_update_interval = 1000
 
     def network(self, input_state):
         hidden_unit = 50
@@ -61,10 +60,12 @@ class DQN():
             self.input_action = tf.placeholder(tf.float32, [None, self.action_dim])
             self.target_Q = tf.placeholder(tf.float32, [None])
             # Q value of the selceted action
-            action_Q = tf.reduce_sum(tf.multiply(self.output_Q, self.input_action), reduction_indices=1)
+            action_Q = tf.reduce_sum(
+                    tf.multiply(self.output_Q, self.input_action), reduction_indices=1)
 
             self.loss = tf.reduce_mean(tf.square(self.target_Q - action_Q))
-            self.optimizer = tf.train.RMSPropOptimizer(self.learning_rate, self.decay_rate).minimize(self.loss)
+            self.optimizer = tf.train.RMSPropOptimizer(
+                    self.learning_rate, self.decay_rate).minimize(self.loss)
 
         # Target network
         with tf.name_scope('target_network'):
@@ -82,11 +83,6 @@ class DQN():
                 self.update_target_network.append(update_op)
             # group all update together
             self.update_target_network = tf.group(*self.update_target_network)
-
-    def init_model(self):
-        # initialize variables
-        init_op = tf.global_variables_initializer()
-        self.sess.run(init_op)
 
     def sample_action(self, state, policy):
         self.global_step += 1
@@ -108,23 +104,18 @@ class DQN():
 
         # Store experience in deque
         self.replay_buffer.append(np.array([state,onehot_action,reward,next_state,done]))
-        if len(self.replay_buffer) > self.memory_size:
-            self.replay_buffer.popleft()
         if len(self.replay_buffer) > self.batch_size:
             self.update_model()
 
     def update_model(self):
-        time_cost = []
         # Update target network
-        if self.global_step % 1000 == 0:
+        if self.global_step % self.target_network_update_interval == 0:
             self.sess.run(self.update_target_network)
         # Sample experience
         minibatch = random.sample(self.replay_buffer, self.batch_size)
 
         # Transpose minibatch
-        minibatch_t = np.array(minibatch).T
-        s_batch, a_batch, r_batch, next_s_batch, done_batch = minibatch_t.tolist()
-
+        s_batch, a_batch, r_batch, next_s_batch, done_batch = np.array(minibatch).T.tolist()
 
         next_s_all_action_Q = \
                 self.sess.run(self.target_output_Q, {self.input_state:next_s_batch})

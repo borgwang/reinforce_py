@@ -128,10 +128,6 @@ class DDPG(object):
                     self.total_parameters += param_num
                 print 'Total nums of parameters: ', self.total_parameters
 
-    def init_model(self):
-        init_op = tf.global_variables_initializer()
-        self.sess.run(init_op)
-
     def sample_action(self, states, explore):
         # is_training suppose to be False when sampling action!!!
         action = self.sess.run(self.action_outputs, {

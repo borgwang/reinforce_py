@@ -1,0 +1,6 @@
+vizdoom
+numpy
+scipy
+tensorflow
+imageio
+argparse

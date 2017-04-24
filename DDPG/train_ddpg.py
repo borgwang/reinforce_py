@@ -8,7 +8,7 @@ import gym
 from agent import DDPG
 
 
-def main():
+def main(args):
     env = gym.make('Walker2d-v1')
 
     agent = DDPG(env)
@@ -21,7 +21,7 @@ def main():
         ep_base = int(args.model_path.split('_')[-1])
     else:
         # build a new model
-        agent.init_model()
+        agent.sess.run(tf.global_variables_initializer())
         ep_base = 0
 
     MAX_EPISODES = 100000
@@ -73,15 +73,16 @@ def main():
                 os.makedirs(args.save_path)
             saver.save(agent.sess, args.save_path+str(episode)+'_'+str(round(mean_rewards,2)))
 
+def args_parse():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--model_path', default=None, help=
+                'Whether to use a saved model. (*None|model path)')
+        parser.add_argument('--save_path', default='./model/', help=
+                'Path to save a model during training.')
+        parser.add_argument('--gpu', default=-1, help=
+                'running on a specify gpu, -1 indicates using cpu')
+        return parser.parse_args()
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default=None, help=
-            'Whether to use a saved model. (*None|model path)')
-    parser.add_argument('--save_path', default='./model/', help=
-            'Path to save a model during training.')
-    parser.add_argument('--gpu', default=-1, help=
-            'running on a specify gpu, -1 indicates using cpu')
-    args = parser.parse_args()
-
-    main()
+    main(args_parse())
