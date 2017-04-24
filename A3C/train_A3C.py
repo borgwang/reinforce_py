@@ -64,10 +64,6 @@ def args_parse():
             'Path of the generated gif during training.')
     parser.add_argument('--save_every', default=250, help=
             'Interval of saving model')
-    parser.add_argument('--gamma', default=0.99, help=
-            'discount factor for advantage estimation and reward discouting')
-    parser.add_argument('--learning_rate', default=1e-4, help=
-            'learning rate for the optimizer')
     parser.add_argument('--max_ep_len', default=300, help=
             'Max episode steps')
     parser.add_argument('--max_ep', default=3000, help=

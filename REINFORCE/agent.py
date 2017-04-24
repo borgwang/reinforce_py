@@ -9,7 +9,6 @@ class REINFORCE(object):
         self.gamma = 0.99
         self.max_gradient = 5
 
-        # buffer
         self.state_buffer  = []
         self.reward_buffer = []
         self.action_buffer = []

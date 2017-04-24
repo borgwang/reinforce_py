@@ -13,7 +13,9 @@ class Worker():
         self.env = env
         self.global_ep = global_ep
         self.args = args
-        self.trainer = tf.train.AdamOptimizer(args.learning_rate)
+        self.learning = 1e-4
+        self.gamma = 0.99
+        self.trainer = tf.train.AdamOptimizer(self.learning_rate)
 
         # create local copy of AC network
         self.local_net = Net(self.env.state_dim,
@@ -122,12 +124,12 @@ class Worker():
 
         # compute advantages and discounted reward using rewards and value
         self.rewards_plus = np.asarray(rewards.tolist() + [bootstrap_value])
-        discounted_rewards = discount(self.rewards_plus, self.args.gamma)[:-1]
+        discounted_rewards = discount(self.rewards_plus, self.gamma)[:-1]
 
         self.value_plus = np.asarray(values.tolist() + [bootstrap_value])
-        advantages = rewards + self.args.gamma * self.value_plus[1:] \
+        advantages = rewards + self.gamma * self.value_plus[1:] \
                     - self.value_plus[:-1]
-        advantages = discount(advantages, self.args.gamma)
+        advantages = discount(advantages, self.gamma)
 
         # update glocal network using gradients from loss
         rnn_state = self.local_net.state_init
