@@ -13,8 +13,8 @@ class Worker():
         self.env = env
         self.global_ep = global_ep
         self.args = args
-        self.learning = 1e-4
-        self.gamma = 0.99
+        self.learning_rate = 1e-4
+        self.gamma = 0.99ss
         self.trainer = tf.train.AdamOptimizer(self.learning_rate)
 
         # create local copy of AC network
@@ -76,7 +76,8 @@ class Worker():
                             self.local_net.state_in[0]: rnn_state[0],
                             self.local_net.state_in[1]: rnn_state[1]
                         })[0][0]
-                        c_l, p_l, e_l, g_n, v_n = self._train(rollout, sess, v1)
+                        v_l, p_l, e_l, g_n, v_n = self._train(rollout, sess, v1)
+                        print 'v_loss %.3f, p_loss %.3f, e_loss %.3f' % (v_l, p_l, e_l)
                         rollout = []
 
                         sess.run(self.update_local_op)

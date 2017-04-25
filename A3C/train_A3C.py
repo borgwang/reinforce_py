@@ -62,7 +62,7 @@ def args_parse():
             'Path to save a model during training.')
     parser.add_argument('--gif_path', default=None, help=
             'Path of the generated gif during training.')
-    parser.add_argument('--save_every', default=250, help=
+    parser.add_argument('--save_every', default=0, help=
             'Interval of saving model')
     parser.add_argument('--max_ep_len', default=300, help=
             'Max episode steps')

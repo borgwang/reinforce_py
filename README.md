@@ -19,25 +19,25 @@ Implementations of popular RL algorithms using Python.
 A **GridWolrd** is a typical model for tabular reinforcement learning methods. It has a 10x10 state space and an action space of {up, down, left right} to move the agent around. There is a target point with +1 reward in the environment and some bomb point with -1 rewards. Also we set a bit cost(-0.01) when the agent take one step so that it tends to find out the optimal path faster.   
 Note that GridWolrd is a definitized model (Taking an action A in state S, you can get the definitized distribution of the next state S'). More environments(including high-dimensional one) will be release later.  
 A typical GridWolrd may look like this.   
-<img src="https://github.com/borgwang/reinforce_py/raw/master/res/gridworld.png" width = "256" height = "180" alt="grid" align=center />  
+<img src="https://github.com/borgwang/reinforce_py/raw/master/res/gridworld.png" width = "256" height = "200" alt="grid" align=center />   
 
 2. Pong  
 The game of Pong is an Atari game which user control one of the paddle (the other one is control by a decent AI) and you have to bounce the ball past the other side. In reinforcement learning setting, the state is raw pixels and the action is moving the paddle UP or DOWN.  
-<img src="https://github.com/borgwang/reinforce_py/raw/master/res/pong.png" width = "180" height = "256" alt="pong" align=center />  
+<img src="https://github.com/borgwang/reinforce_py/raw/master/res/pong.png" width = "180" height = "256" alt="pong" align=center />   
 We will solve the game of Pong using REINFORCE and Actor-Critic Algorithms.  
 
 3. CartPole  
-<img src="https://github.com/borgwang/reinforce_py/raw/master/res/cartpole.png" width = "256" height = "180" alt="CartPole" align=center />  
+<img src="https://github.com/borgwang/reinforce_py/raw/master/res/cartpole.png" width = "256" height = "200" alt="CartPole" align=center />  
 In CartPole, a pole is attached by an un-actuated joint to a cart, which move along a track. The agent contrl the cart by moving left or right in order to ballance the pole.  
-We will solve CartPole using DQN Algorithm.  
+We will solve CartPole using DQN Algorithm.   
 
 4. Walker2d  
-<img src="https://github.com/borgwang/reinforce_py/raw/master/res/walker2d.png" width = "180" height = "256" alt="walker2d" align=center />  
-Walker2d is a continuous control task base on Mujoco. The goal is to make a two-dimensional bipedal robot walk forward as fast as possible.
-We solve the Walker2d using DDPG Algorithm.
+<img src="https://github.com/borgwang/reinforce_py/raw/master/res/walker2d.png" width = "200" height = "256" alt="walker2d" align=center />   
+Walker2d is a continuous control task base on Mujoco. The goal is to make a two-dimensional bipedal robot walk forward as fast as possible.  
+We solve the Walker2d using DDPG Algorithm.  
 
-5. VizDoom
-<img src="https://github.com/borgwang/reinforce_py/raw/master/res/doom.png" width = "256" height = "180" alt="doom" align=center />  
+5. VizDoom  
+<img src="https://github.com/borgwang/reinforce_py/raw/master/res/doom.png" width = "256" height = "200" alt="doom" align=center />   
 ViZDoom is a Doom-based AI research platform for reinforcement learning from raw visual information. It allows developing AI bots that play Doom using only the screen buffer. ViZDoom is primarily intended for research in machine visual learning, and deep reinforcement learning, in particular.  
 We solve the basic vizdoom task using A3C algorithm.  
 
@@ -69,6 +69,6 @@ We use DDPG to solve a continuous control task Walker2d.
 
 5. A3C  
 The A3C (Asynchronous Advanced Actor Critic) method was proposed by Google DeepMind Group in last year. A3C outperform DQN in many Deep RL tasks and is now the state-of-the-art model in Deep RL domain.  
-Related papers:
+Related papers:  
     * [Asynchronous Methods for Deep Reinforcement Learning](http://diyhpl.us/~bryan/papers2/ai/machine-learning/Asynchronous%20methods%20for%20deep%20reinforcement%20learning%20-%202016.pdf)  
 In this repository, we implement A3C to slove basic VizDoom task.  

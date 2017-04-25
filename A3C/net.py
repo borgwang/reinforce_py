@@ -25,19 +25,19 @@ class Net(object):
         # Actor network and critic network share all shallow layers
         conv1 = slim.conv2d(inputs=inputs,
                             num_outputs=16,
-                            activation_fn=tf.nn.elu,
+                            activation_fn=tf.nn.relu,
                             kernel_size=[8, 8],
                             stride=[4, 4],
                             padding='VALID')
         conv2 = slim.conv2d(inputs=conv1,
                             num_outputs=32,
-                            activation_fn=tf.nn.elu,
+                            activation_fn=tf.nn.relu,
                             kernel_size=[4, 4],
                             stride=[2, 2],
                             padding='VALID')
         hidden = slim.fully_connected(inputs=slim.flatten(conv2),
                                     num_outputs=256,
-                                    activation_fn=tf.nn.elu)
+                                    activation_fn=tf.nn.relu)
 
         # Recurrent network for temporal dependencies
         lstm_cell = tf.contrib.rnn.BasicLSTMCell(num_units=256)
