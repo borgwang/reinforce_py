@@ -19,14 +19,12 @@ In this repository, we implement A3C to slove basic ViZDoom task.
 * [scipy](https://www.scipy.org/)  
 * [ViZDoom](https://github.com/mwydmuch/ViZDoom/blob/master/doc/Building.md)  
 
-## Workflow  
-* Start training  
-      python train_A3C.py --parallel=4
-* For more optional arguments, run
-      python train_A3C.py -h
+## Run  
+      python train_A3C.py
+      python train_A3C.py -h   # show all optimal arguments
 
-* Code Components  
-    *train_A3C.py* create a master(global) network and multiple workers(local) network.  
-    *worker.py* is the worker class implementation.  
-    *net.py* construct Actor-Critic network.  
-    *env_doom* is a warper of ViZDoom environment.
+## Code Components  
+    **train_A3C.py** create a master(global) network and multiple workers(local) network.  
+    **worker.py** is the worker class implementation.  
+    **net.py** construct Actor-Critic network.  
+    **env_doom** is a warper of ViZDoom environment.
