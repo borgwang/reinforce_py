@@ -15,7 +15,7 @@ def main(args):
     TEST_EPISODE = 100
 
     env = gym.make("CartPole-v0")
-    agent = DQN(env, double_q=False)
+    agent = DQN(env, double_q=args.double)
     agent.construct_model(args.gpu)
 
     saver = tf.train.Saver(max_to_keep=2)
@@ -74,6 +74,8 @@ def args_parse():
                 'Whether to use a saved model. (*None|model path)')
     parser.add_argument('--save_path', default='./model/', help=
                 'Path to save a model during training.')
+    parser.add_argument('--double', default=False, help=
+                'enable or disable double dqn')
     parser.add_argument('--log_every', default=100, help=
                 'Log and save model every x episodes')
     parser.add_argument('--gpu', default=-1, help=

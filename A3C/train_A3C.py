@@ -16,22 +16,19 @@ def main(args):
     if args.gif_path is not None and not os.path.exists(args.gif_path):
         os.makedirs(args.gif_path)
 
-    with tf.device('/cpu:0'):
-        tf.reset_default_graph()
-        # define global_ep as a tf-variable, so that we can
-        # maintain its value when loading a saved model
-        global_ep = tf.Variable(0, dtype=tf.int32, name='global_ep', trainable=False)
-        env = Doom(visiable=False)
-        master = Net(env.state_dim, env.action_dim, 'global', None)
-        num_workers = multiprocessing.cpu_count()
-        workers = []
+    tf.reset_default_graph()
+    global_ep = tf.Variable(0, dtype=tf.int32, name='global_ep', trainable=False)
+    env = Doom(visiable=False)
+    master = Net(env.state_dim, env.action_dim, 'global', None)
+    num_workers = args.parallel
+    workers = []
 
-        # create workers
-        for i in range(num_workers):
-            w = Worker(i, Doom(), global_ep, args)
-            workers.append(w)
-        print '%d workers in total.\n' % num_workers
-        saver = tf.train.Saver(max_to_keep=3)
+    # create workers
+    for i in range(num_workers):
+        w = Worker(i, Doom(), global_ep, args)
+        workers.append(w)
+    print '%d workers in total.\n' % num_workers
+    saver = tf.train.Saver(max_to_keep=3)
 
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
@@ -68,6 +65,8 @@ def args_parse():
             'Max episode steps')
     parser.add_argument('--max_ep', default=3000, help=
             'Max training episode')
+    parser.add_argument('--parallel', default=multiprocessing.cpu_count(), help=
+            'Number of parallel threads')
     args = parser.parse_args()
 
     return args

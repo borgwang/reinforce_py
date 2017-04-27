@@ -14,7 +14,7 @@ class Worker():
         self.global_ep = global_ep
         self.args = args
         self.learning_rate = 1e-4
-        self.gamma = 0.99ss
+        self.gamma = 0.99
         self.trainer = tf.train.AdamOptimizer(self.learning_rate)
 
         # create local copy of AC network
