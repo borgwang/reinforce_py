@@ -51,7 +51,7 @@ class ActorCritic(object):
             # optimizer
             self.optimizer = tf.train.RMSPropOptimizer(learning_rate=1e-4)
             # actor loss
-            self.actor_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(self.logp, self.taken_action)
+            self.actor_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logp, labels=self.taken_action)
             # advantage
             self.advantages = (self.discounted_rewards- self.state_value)[:,0]
             # actor gradient
