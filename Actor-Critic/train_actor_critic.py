@@ -28,7 +28,7 @@ def main(args):
         mean_rewards = float(args.model_path.split('/')[-1].split('_')[0])
     else:
         # build a new model
-        agent.sess.run(global_variables_initializer())
+        agent.sess.run(tf.global_variables_initializer())
         ep_base = 0
         mean_rewards = None
 
