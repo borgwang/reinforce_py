@@ -5,7 +5,6 @@ from random import choice
 from utils import *
 from vizdoom import *
 from net import Net
-import imageio
 
 class Worker():
     def __init__(self, worker_id, env, global_ep, args):
@@ -23,8 +22,6 @@ class Worker():
                             scope=self.name,
                             trainer=self.trainer)
 
-        # Assign global params to local params. This op will be excuted when
-        # a worker just finish update global params or start a new episode.
         self.update_local_op = self._update_local_params()
 
     def run(self, sess, coord, saver):
@@ -77,7 +74,6 @@ class Worker():
                             self.local_net.state_in[1]: rnn_state[1]
                         })[0][0]
                         v_l, p_l, e_l, g_n, v_n = self._train(rollout, sess, v1)
-                        print 'v_loss %.3f, p_loss %.3f, e_loss %.3f' % (v_l, p_l, e_l)
                         rollout = []
 
                         sess.run(self.update_local_op)
@@ -111,12 +107,6 @@ class Worker():
                     # save model and make gif
                     if global_ep != 0 and global_ep % self.args.save_every == 0:
                         saver.save(sess,self.args.save_path+str(global_ep)+'.cptk')
-                        print 'Model saved.'
-                        if self.args.gif_path:
-                            imageio.mimwrite(self.args.gif_path+str(global_ep)+'.gif',
-                                         self.ep_frames, fps=50)
-                            print 'Gif saved.'
-
                 ep_count += 1  # update local ep
 
     def _train(self, rollout, sess, bootstrap_value):

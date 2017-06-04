@@ -13,8 +13,6 @@ from utils import print_net_params_number
 def main(args):
     if args.save_path is not None and not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-    if args.gif_path is not None and not os.path.exists(args.gif_path):
-        os.makedirs(args.gif_path)
 
     tf.reset_default_graph()
     global_ep = tf.Variable(0, dtype=tf.int32, name='global_ep', trainable=False)
@@ -55,11 +53,9 @@ def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', default=None, help=
             'Whether to use a saved model. (*None|model path)')
-    parser.add_argument('--save_path', default='./model/', help=
+    parser.add_argument('--save_path', default='/tmp/a3c_doom/model/', help=
             'Path to save a model during training.')
-    parser.add_argument('--gif_path', default=None, help=
-            'Path of the generated gif during training.')
-    parser.add_argument('--save_every', default=0, help=
+    parser.add_argument('--save_every', default=50, help=
             'Interval of saving model')
     parser.add_argument('--max_ep_len', default=300, help=
             'Max episode steps')
