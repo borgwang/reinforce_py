@@ -1,10 +1,10 @@
 import numpy as np
 import tensorflow as tf
-from random import choice
 
 from utils import *
 from vizdoom import *
 from net import Net
+
 
 class Worker():
     def __init__(self, worker_id, env, global_ep, args):
@@ -18,9 +18,9 @@ class Worker():
 
         # create local copy of AC network
         self.local_net = Net(self.env.state_dim,
-                            self.env.action_dim,
-                            scope=self.name,
-                            trainer=self.trainer)
+                             self.env.action_dim,
+                             scope=self.name,
+                             trainer=self.trainer)
 
         self.update_local_op = self._update_local_params()
 
@@ -68,7 +68,7 @@ class Worker():
                     # Update if the buffer is full (size=30)
                     if not d and len(rollout) == 30 \
                              and ep_step_count != self.args.max_ep_len - 1:
-                        v1 = sess.run(self.local_net.value,{
+                        v1 = sess.run(self.local_net.value, {
                             self.local_net.inputs: [s],
                             self.local_net.state_in[0]: rnn_state[0],
                             self.local_net.state_in[1]: rnn_state[1]
@@ -106,7 +106,8 @@ class Worker():
                         coord.request_stop()
                     # save model and make gif
                     if global_ep != 0 and global_ep % self.args.save_every == 0:
-                        saver.save(sess,self.args.save_path+str(global_ep)+'.cptk')
+                        saver.save(
+                            sess, self.args.save_path+str(global_ep)+'.cptk')
                 ep_count += 1  # update local ep
 
     def _train(self, rollout, sess, bootstrap_value):
@@ -118,8 +119,8 @@ class Worker():
         discounted_rewards = discount(self.rewards_plus, self.gamma)[:-1]
 
         self.value_plus = np.asarray(values.tolist() + [bootstrap_value])
-        advantages = rewards + self.gamma * self.value_plus[1:] \
-                    - self.value_plus[:-1]
+        advantages = rewards + self.gamma * self.value_plus[1:] - \
+            self.value_plus[:-1]
         advantages = discount(advantages, self.gamma)
 
         # update glocal network using gradients from loss
@@ -142,8 +143,10 @@ class Worker():
         return v_l/len(rollout), p_l/len(rollout), e_l/len(rollout), g_n, v_n
 
     def _update_local_params(self):
-        global_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
-        local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.name)
+        global_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
+        local_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES, self.name)
         update_op = []
         for global_var, local_var in zip(global_vars, local_vars):
             update_op.append(local_var.assign(global_var))

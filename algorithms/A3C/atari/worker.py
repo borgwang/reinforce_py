@@ -1,7 +1,5 @@
 import numpy as np
 import tensorflow as tf
-from random import choice
-import time
 
 from utils import *
 from net import Net
@@ -19,28 +17,30 @@ class Worker():
         args: Global parameters and hyperparameters
     """
 
-    def __init__(self, worker_id, env, global_steps_counter, summary_writer, args):
+    def __init__(
+            self, worker_id, env, global_steps_counter, summary_writer, args):
         self.name = 'worker_'+str(worker_id)
         self.env = env
         self.args = args
         self.local_steps = 0
         self.global_steps_counter = global_steps_counter
-        # each worker has its own optimizer and learning_rate which slowly annealed to 0
+        # each worker has its own optimizer and learning_rate
         self.learning_rate = tf.Variable(args.init_learning_rate,
                                          dtype=tf.float32,
                                          trainable=False,
                                          name=self.name+'_lr')
-        self.delta_lr = args.init_learning_rate / (args.max_steps / args.threads)
+        self.delta_lr = \
+            args.init_learning_rate / (args.max_steps / args.threads)
         self.trainer = tf.train.RMSPropOptimizer(self.learning_rate,
                                                  decay=args.decay,
                                                  epsilon=args.epsilon)
         self.summary_writer = summary_writer
 
         self.local_net = Net(self.env.s_dim,
-                            self.env.a_dim,
-                            scope=self.name,
-                            args=self.args,
-                            trainer=self.trainer)
+                             self.env.a_dim,
+                             scope=self.name,
+                             args=self.args,
+                             trainer=self.trainer)
 
         self.update_local_op = self._update_local_vars()
         self.anneal_learning_rate = self._anneal_learning_rate()
@@ -53,8 +53,9 @@ class Worker():
                 rollout = []
                 s = self.env.new_round()
                 while True:
-                    p, v = sess.run([self.local_net.policy, self.local_net.value],
-                                    feed_dict={self.local_net.inputs: [s]})
+                    p, v = sess.run(
+                        [self.local_net.policy, self.local_net.value],
+                        feed_dict={self.local_net.inputs: [s]})
                     a = np.random.choice(np.arange(self.env.a_dim), p=p[0])
                     s1, r, dead, done = self.env.step(a)
                     rollout.append([s, a, r, s1, dead, v[0][0]])
@@ -67,12 +68,13 @@ class Worker():
                     if not dead and len(rollout) == self.args.tmax:
                         # calculate value of next state, uses for bootstraping
                         v1 = sess.run(self.local_net.value,
-                                feed_dict={self.local_net.inputs: [s]})
+                                      feed_dict={self.local_net.inputs: [s]})
                         self._train(rollout, sess, v1[0][0], global_steps)
                         rollout = []
                         sess.run(self.update_local_op)
 
-                    if dead: break
+                    if dead:
+                        break
 
                 if len(rollout) != 0:
                     self._train(rollout, sess, 0.0, global_steps)
@@ -120,8 +122,10 @@ class Worker():
         Assign global networks parameters to local networks
         """
 
-        global_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
-        local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.name)
+        global_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
+        local_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES, self.name)
         update_op = []
         for g_v, l_v in zip(global_vars, local_vars):
             update_op.append(l_v.assign(g_v))
@@ -129,6 +133,7 @@ class Worker():
         return update_op
 
     def _anneal_learning_rate(self):
-        return tf.cond(self.learning_rate > 0.0,
-                    lambda: tf.assign_sub(self.learning_rate, self.delta_lr),
-                    lambda: tf.assign(self.learning_rate, 0.0))
+        return tf.cond(
+            self.learning_rate > 0.0,
+            lambda: tf.assign_sub(self.learning_rate, self.delta_lr),
+            lambda: tf.assign(self.learning_rate, 0.0))

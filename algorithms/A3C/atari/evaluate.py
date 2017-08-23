@@ -3,7 +3,6 @@ import numpy as np
 import os
 import time
 
-from itertools import cycle
 from atari_env import Atari
 
 
@@ -38,19 +37,21 @@ class Evaluate(object):
             avg_reward, avg_ep_length = self._eval(sess)
             self.eval_times += 1
             print 'Eval at step %d: avg_reward %.4f, avg_ep_length %.4f' % \
-                    (global_steps, avg_reward, avg_ep_length)
+                  (global_steps, avg_reward, avg_ep_length)
             print 'Time cost: %.4fs' % (time.time() - eval_start)
             # add summaries
             ep_summary = tf.Summary()
             ep_summary.value.add(simple_value=avg_reward, tag='eval/avg_reward')
-            ep_summary.value.add(simple_value=avg_ep_length, tag='eval/avg_ep_length')
+            ep_summary.value.add(
+                simple_value=avg_ep_length, tag='eval/avg_ep_length')
             self.summary_writer.add_summary(ep_summary, global_steps)
             self.summary_writer.flush()
             # save models
             if self.eval_times % 10 == 1:
                 save_start = time.time()
                 self.saver.save(sess, self.model_dir+str(global_steps))
-                print 'Model saved. Time cost: %.4fs ' % (time.time() - save_start)
+                print 'Model saved. Time cost: %.4fs ' % \
+                      (time.time() - save_start)
 
             time.sleep(self.eval_every)
 
@@ -61,7 +62,8 @@ class Evaluate(object):
         for _ in range(3):
             s = self.env.new_round()
             while not done:
-                p = sess.run(self.global_net.policy, {self.global_net.inputs: [s]})
+                p = sess.run(self.global_net.policy,
+                             {self.global_net.inputs: [s]})
                 a = np.random.choice(np.arange(self.env.a_dim), p=p[0])
                 s, r, dead, done = self.env.step(a)
                 total_reward += r

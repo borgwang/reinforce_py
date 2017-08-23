@@ -12,7 +12,6 @@ def main(args):
     HIDDEN_UNITS = 200
     ACTION_DIM = 6
     MAX_EPISODES = 10000
-    MAX_STEPS = 5000
 
     # load agent
     agent = ActorCritic(INPUT_DIM, HIDDEN_UNITS, ACTION_DIM)

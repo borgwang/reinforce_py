@@ -37,18 +37,21 @@ class Net(object):
         """
         Biuld the computational graph.
         """
-        conv1 = slim.conv2d(inputs=inputs, num_outputs=16, activation_fn=tf.nn.relu,
-                            kernel_size=[8, 8], stride=[4, 4], padding='VALID',
-                            scope='share_conv1')
-        conv2 = slim.conv2d(inputs=conv1, num_outputs=32, activation_fn=tf.nn.relu,
-                            kernel_size=[4, 4], stride=[2, 2], padding='VALID',
-                            scope='share_conv2')
-        hidden = slim.fully_connected(inputs=slim.flatten(conv2), num_outputs=256,
-                                    activation_fn=tf.nn.relu, scope='share_fc')
+        conv1 = slim.conv2d(inputs=inputs, num_outputs=16,
+                            activation_fn=tf.nn.relu, kernel_size=[8, 8],
+                            stride=[4, 4], padding='VALID', scope='share_conv1')
+        conv2 = slim.conv2d(inputs=conv1, num_outputs=32,
+                            activation_fn=tf.nn.relu, kernel_size=[4, 4],
+                            stride=[2, 2], padding='VALID', scope='share_conv2')
+        hidden = slim.fully_connected(inputs=slim.flatten(conv2),
+                                      num_outputs=256,
+                                      activation_fn=tf.nn.relu,
+                                      scope='share_fc')
 
-        self.policy = slim.fully_connected(inputs=hidden, num_outputs=self.a_dim,
-                                          activation_fn=tf.nn.softmax,
-                                          scope='policy_out')
+        self.policy = slim.fully_connected(inputs=hidden,
+                                           num_outputs=self.a_dim,
+                                           activation_fn=tf.nn.softmax,
+                                           scope='policy_out')
         self.value = slim.fully_connected(inputs=hidden, num_outputs=1,
                                           activation_fn=None,
                                           scope='value_out')
@@ -67,25 +70,31 @@ class Net(object):
 
         # MSE critic loss
         self.critic_loss = 0.5 * tf.reduce_sum(
-                tf.squared_difference(self.target_v, tf.reshape(self.value, [-1])))
+                tf.squared_difference(
+                    self.target_v, tf.reshape(self.value, [-1])))
 
         # high entropy -> low loss -> encourage exploration
         self.entropy = -tf.reduce_sum(self.policy * tf.log(self.policy + 1e-30), 1)
         self.entropy_loss = -self.entropy_ratio * tf.reduce_sum(self.entropy)
 
         # policy gradients = d_[-log(p) * advantages] / d_theta
-        self.actor_loss = -tf.reduce_sum(tf.log(action_prob + 1e-30) * self.advantages)
+        self.actor_loss = -tf.reduce_sum(
+            tf.log(action_prob + 1e-30) * self.advantages)
         self.actor_loss += self.entropy_loss
 
         self.loss = self.actor_loss + self.critic_loss
-        local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.scope)
+        local_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES, self.scope)
         self.grads = tf.gradients(self.loss, local_vars)
 
         # global norm gradients clipping
-        self.grads, self.grad_norms = tf.clip_by_global_norm(self.grads, self.clip_grads)
+        self.grads, self.grad_norms = \
+            tf.clip_by_global_norm(self.grads, self.clip_grads)
         self.var_norms = tf.global_norm(local_vars)
-        global_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
-        self.apply_grads_to_global = trainer.apply_gradients(zip(self.grads, global_vars))
+        global_vars = tf.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
+        self.apply_grads_to_global = \
+            trainer.apply_gradients(zip(self.grads, global_vars))
 
         # summaries
         if self.scope == 'worker_0':

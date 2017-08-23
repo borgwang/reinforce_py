@@ -1,4 +1,3 @@
-from collections import deque
 import argparse
 import tensorflow as tf
 import numpy as np
@@ -29,7 +28,7 @@ def main(args):
         total_rewards = 0
         for step in xrange(env.spec.timestep_limit):
             env.render()
-            action = agent.sample_action(state[np.newaxis,:], explore=False)
+            action = agent.sample_action(state[np.newaxis, :], explore=False)
             # act
             next_state, reward, done, _ = env.step(action[0])
 
@@ -46,16 +45,16 @@ def main(args):
 
     print 'Average rewards: ', np.mean(reward_history)
 
+
 def args_parse():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path', default=None, help=
-            'Whether to use a saved model. (*None|model path)')
-    parser.add_argument('--save_path', default='./model/', help=
-            'Path to save a model during training.')
-    parser.add_argument('--gpu', default=-1, help=
-            'running on a specify gpu, -1 indicates using cpu')
-    parser.add_argument('--ep', default=10, help=
-            'Test episodes')
+    parser.add_argument('--model_path', default=None,
+                        help='Whether to use a saved model. (*None|model path)')
+    parser.add_argument('--save_path', default='./model/',
+                        help='Path to save a model during training.')
+    parser.add_argument('--gpu', default=-1,
+                        help='running on a specify gpu, -1 indicates using cpu')
+    parser.add_argument('--ep', default=10, help='Test episodes')
     return parser.parse_args()
 
 

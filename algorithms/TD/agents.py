@@ -66,7 +66,7 @@ class TDAgent(object):
         qs = self.Q[self.curr_s][poss]
         q_maxs = [q for q in qs if q == max(qs)]
         # update probs
-        for i,a in enumerate(poss):
+        for i, a in enumerate(poss):
             self.P[self.curr_s][a] = \
                 1.0 / len(q_maxs) if qs[i] in q_maxs else 0.0
 
@@ -76,7 +76,7 @@ class TDAgent(object):
             a = random.choice(poss)
         else:  # greedy action
             pros = self.P[state][poss]  # probobilities for possiable actions
-            best_a_idx = [i for i,p in enumerate(pros) if p == max(pros)]
+            best_a_idx = [i for i, p in enumerate(pros) if p == max(pros)]
             a = poss[random.choice(best_a_idx)]
         return a
 

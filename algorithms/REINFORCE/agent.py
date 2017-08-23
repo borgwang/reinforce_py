@@ -11,7 +11,7 @@ class REINFORCE(object):
         self.gamma = 0.99
         self.max_gradient = 5
 
-        self.state_buffer  = []
+        self.state_buffer = []
         self.reward_buffer = []
         self.action_buffer = []
 
@@ -45,7 +45,8 @@ class REINFORCE(object):
             self.taken_actions = tf.placeholder(tf.int32, [None, ])
 
             # optimizer
-            self.optimizer = tf.train.RMSPropOptimizer(learning_rate=1e-4, decay=0.99)
+            self.optimizer = tf.train.RMSPropOptimizer(
+                learning_rate=1e-4, decay=0.99)
             # loss
             self.loss = tf.reduce_mean(
                 tf.nn.sparse_softmax_cross_entropy_with_logits(
@@ -57,7 +58,8 @@ class REINFORCE(object):
                 if grad is not None:
                     pg_grad = grad * self.discounted_rewards
                     # gradient clipping
-                    pg_grad = tf.clip_by_value(pg_grad, -self.max_gradient, self.max_gradient)
+                    pg_grad = tf.clip_by_value(
+                        pg_grad, -self.max_gradient, self.max_gradient)
                     self.gradient[i] = (pg_grad, var)
             # train operation (apply gradient)
             self.train_op = self.optimizer.apply_gradients(self.gradient)
@@ -103,7 +105,7 @@ class REINFORCE(object):
         running_add = 0
         for t in range(len(r))[::-1]:
             if r[t] != 0:
-                running_add = 0 # game boundary. reset the running add
+                running_add = 0  # game boundary. reset the running add
             running_add = r[t] + running_add * self.gamma
             d_r[t] += running_add
         # standardize the rewards
