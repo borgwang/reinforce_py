@@ -1,8 +1,13 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 import argparse
 import gym
 import numpy as np
 import tensorflow as tf
+
 from agent import ActorCritic
 from utils import *
 
@@ -31,10 +36,10 @@ def main(args):
         mean_rewards = None
 
     # load env
-    env = gym.make("Pong-v0")
+    env = gym.make('Pong-v0')
 
     # training loop
-    for ep in xrange(MAX_EPISODES):
+    for ep in range(MAX_EPISODES):
         # reset env
         step = 0
         total_rewards = 0
@@ -65,9 +70,9 @@ def main(args):
 
         rounds = (21 - np.abs(total_rewards)) + 21
         average_steps = (step + 1) / rounds
-        print 'Ep%s: %d rounds' % (ep_base+ep+1, rounds)
-        print 'Average_steps: %.2f Reward: %s Average_reward: %.4f' \
-            % (average_steps, total_rewards, mean_rewards)
+        print('Ep%s: %d rounds' % (ep_base + ep + 1, rounds))
+        print('Average_steps: %.2f Reward: %s Average_reward: %.4f' %
+              (average_steps, total_rewards, mean_rewards))
 
         # update model per episode
         agent.update_model()

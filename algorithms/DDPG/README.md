@@ -14,7 +14,6 @@ Walker2d is a continuous control task base on [Mujoco](http://www.mujoco.org/). 
 
 
 ## Requirements  
-* Python 2.7  
 * [Numpy](http://www.numpy.org/)   
 * [Tensorflow](http://www.tensorflow.org)  
 * [gym](https://gym.openai.com)  

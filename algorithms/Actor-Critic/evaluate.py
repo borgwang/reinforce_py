@@ -1,7 +1,12 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import argparse
 import gym
 import numpy as np
 import tensorflow as tf
+
 from agent import ActorCritic
 from utils import *
 
@@ -25,10 +30,10 @@ def main(args):
         agent.sess.run(tf.global_variables_initializer())
 
     # load env
-    env = gym.make("Pong-v0")
+    env = gym.make('Pong-v0')
 
     # training loop
-    for ep in xrange(args.ep):
+    for ep in range(args.ep):
         # reset env
         total_rewards = 0
         state = env.reset()
@@ -47,7 +52,7 @@ def main(args):
             if done:
                 break
 
-        print 'Ep%s  Reward: %s ' % (ep+1, total_rewards)
+        print('Ep%s  Reward: %s ' % (ep+1, total_rewards))
 
 
 def args_parse():

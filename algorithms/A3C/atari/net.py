@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
@@ -6,7 +10,7 @@ from utils import *
 
 
 class Net(object):
-    """
+    '''
     An Actor-Critic Network class. The shallow layers are shared by the Actor
     and the Critic.
 
@@ -15,7 +19,7 @@ class Net(object):
         a_dim: dimensions of the action space
         scope: Scope the net belongs to
         trainer: optimizer used by this net
-    """
+    '''
 
     def __init__(self, s_dim, a_dim, scope, args, trainer=None):
         self.s_dim = s_dim
@@ -34,9 +38,9 @@ class Net(object):
                 self._update_network(trainer)
 
     def _contruct_network(self, inputs):
-        """
+        '''
         Biuld the computational graph.
-        """
+        '''
         conv1 = slim.conv2d(inputs=inputs, num_outputs=16,
                             activation_fn=tf.nn.relu, kernel_size=[8, 8],
                             stride=[4, 4], padding='VALID', scope='share_conv1')
@@ -57,9 +61,9 @@ class Net(object):
                                           scope='value_out')
 
     def _update_network(self, trainer):
-        """
+        '''
         Build losses, compute gradients and apply gradients to the global net
-        """
+        '''
 
         self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
         actions_onehot = tf.one_hot(self.actions, self.a_dim, dtype=tf.float32)

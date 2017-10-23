@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import tensorflow as tf
 
@@ -5,8 +9,8 @@ from utils import *
 from net import Net
 
 
-class Worker():
-    """
+class Worker(object):
+    '''
     An A3C worker thread. Run a game locally, gather gradients and apply
     to the global networks.
 
@@ -15,7 +19,7 @@ class Worker():
         env: Game environment used by this worker
         global_steps: Iterator that holds the global steps
         args: Global parameters and hyperparameters
-    """
+    '''
 
     def __init__(
             self, worker_id, env, global_steps_counter, summary_writer, args):
@@ -46,7 +50,7 @@ class Worker():
         self.anneal_learning_rate = self._anneal_learning_rate()
 
     def run(self, sess, coord, saver):
-        print 'Starting '+self.name+'\n'
+        print('Starting ' + self.name + '\n')
         with sess.as_default(), sess.graph.as_default():
             while not coord.should_stop():
                 sess.run(self.update_local_op)
@@ -84,7 +88,7 @@ class Worker():
                     print_time_cost(self.args.start_time)
 
     def _train(self, rollout, sess, bootstrap_value, global_steps):
-        """
+        '''
         Update global networks based on the rollout experiences
 
         Args:
@@ -93,7 +97,7 @@ class Worker():
             bootstrap_value: if the episode was not done, we bootstrap the value
                              from the last state.
             global_steps: use for summary
-        """
+        '''
 
         rollout = np.array(rollout)
         observs, actions, rewards, next_observs, dones, values = rollout.T
@@ -118,9 +122,9 @@ class Worker():
             self.summary_writer.flush()
 
     def _update_local_vars(self):
-        """
+        '''
         Assign global networks parameters to local networks
-        """
+        '''
 
         global_vars = tf.get_collection(
             tf.GraphKeys.TRAINABLE_VARIABLES, 'global')

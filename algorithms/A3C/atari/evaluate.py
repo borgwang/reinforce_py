@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import tensorflow as tf
 import numpy as np
 import os
@@ -7,7 +11,7 @@ from atari_env import Atari
 
 
 class Evaluate(object):
-    """
+    '''
     Evaluate a policy by running n episodes in an environment.
     Save a video and plot summaries to Tensorboard
 
@@ -15,7 +19,7 @@ class Evaluate(object):
         global_net: The global network
         summary_writer: used to write Tensorboard summaries
         args: Some global parameters
-    """
+    '''
 
     def __init__(self, global_net, summary_writer, global_steps_counter, args):
         self.env = Atari(args, record=args.save_videos)
@@ -36,12 +40,13 @@ class Evaluate(object):
             eval_start = time.time()
             avg_reward, avg_ep_length = self._eval(sess)
             self.eval_times += 1
-            print 'Eval at step %d: avg_reward %.4f, avg_ep_length %.4f' % \
-                  (global_steps, avg_reward, avg_ep_length)
-            print 'Time cost: %.4fs' % (time.time() - eval_start)
+            print('Eval at step %d: avg_reward %.4f, avg_ep_length %.4f' %
+                  (global_steps, avg_reward, avg_ep_length))
+            print('Time cost: %.4fs' % (time.time() - eval_start))
             # add summaries
             ep_summary = tf.Summary()
-            ep_summary.value.add(simple_value=avg_reward, tag='eval/avg_reward')
+            ep_summary.value.add(
+                simple_value=avg_reward, tag='eval/avg_reward')
             ep_summary.value.add(
                 simple_value=avg_ep_length, tag='eval/avg_ep_length')
             self.summary_writer.add_summary(ep_summary, global_steps)
@@ -50,8 +55,8 @@ class Evaluate(object):
             if self.eval_times % 10 == 1:
                 save_start = time.time()
                 self.saver.save(sess, self.model_dir+str(global_steps))
-                print 'Model saved. Time cost: %.4fs ' % \
-                      (time.time() - save_start)
+                print('Model saved. Time cost: %.4fs ' %
+                      (time.time() - save_start))
 
             time.sleep(self.eval_every)
 

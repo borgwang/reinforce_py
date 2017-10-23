@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import tensorflow as tf
 
@@ -79,7 +83,7 @@ class REINFORCE(object):
         discounted_rewards = self.reward_discount()
         episode_steps = len(discounted_rewards)
 
-        for s in reversed(xrange(episode_steps)):
+        for s in reversed(range(episode_steps)):
             state = self.state_buffer[s][np.newaxis, :]
             action = np.array([self.action_buffer[s]])
             reward = np.array([discounted_rewards[s]])

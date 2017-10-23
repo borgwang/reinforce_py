@@ -1,4 +1,9 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import argparse
+
 from agents import TDAgent
 from envs import GridWorld
 

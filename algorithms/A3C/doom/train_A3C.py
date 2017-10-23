@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import threading
 import multiprocessing
 import os
@@ -27,25 +31,25 @@ def main(args):
     for i in range(num_workers):
         w = Worker(i, Doom(), global_ep, args)
         workers.append(w)
-    print '%d workers in total.\n' % num_workers
+    print('%d workers in total.\n' % num_workers)
     saver = tf.train.Saver(max_to_keep=3)
 
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
         if args.model_path is not None:
-            print 'Loading model...'
+            print('Loading model...')
             ckpt = tf.train.get_checkpoint_state(args.model_path)
             saver.restore(sess, ckpt.model_checkpoint_path)
         else:
-            print 'Initializing a new model...'
+            print('Initializing a new model...')
             sess.run(tf.global_variables_initializer())
         print_net_params_number()
 
         # Start work process for each worker in a seperate thread
         worker_threads = []
         for w in workers:
-            run = lambda: w.run(sess, coord, saver)
-            t = threading.Thread(target=(run))
+            run_fn = lambda: w.run(sess, coord, saver)
+            t = threading.Thread(target=(run_fn))
             t.start()
             sleep(0.5)
             worker_threads.append(t)

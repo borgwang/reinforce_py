@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import argparse
 import tensorflow as tf
 import numpy as np
@@ -22,11 +26,11 @@ def main(args):
         # build a new model
         agent.sess.run(tf.global_variables_initializer())
 
-    for episode in xrange(args.ep):
+    for episode in range(args.ep):
         # env init
         state = env.reset()
         total_rewards = 0
-        for step in xrange(env.spec.timestep_limit):
+        for step in range(env.spec.timestep_limit):
             env.render()
             action = agent.sample_action(state[np.newaxis, :], explore=False)
             # act
@@ -41,19 +45,19 @@ def main(args):
             if done:
                 break
         reward_history.append(total_rewards)
-        print 'Ep%d  reward:%d' % (episode+1, total_rewards)
+        print('Ep%d  reward:%d' % (episode+1, total_rewards))
 
-    print 'Average rewards: ', np.mean(reward_history)
+    print('Average rewards: ', np.mean(reward_history))
 
 
 def args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', default=None,
-                        help='Whether to use a saved model. (*None|model path)')
+                        help='Use a saved model. (*None|model path)')
     parser.add_argument('--save_path', default='./model/',
                         help='Path to save a model during training.')
     parser.add_argument('--gpu', default=-1,
-                        help='running on a specify gpu, -1 indicates using cpu')
+                        help='Specify gpu id, -1 indicates using cpu')
     parser.add_argument('--ep', default=10, help='Test episodes')
     return parser.parse_args()
 

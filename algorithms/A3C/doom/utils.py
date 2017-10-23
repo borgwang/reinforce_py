@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import tensorflow as tf
 import scipy.signal
 import numpy as np
@@ -29,6 +33,6 @@ def print_net_params_number():
         param_num = 1
         for d in shape:
             param_num *= d.value
-        print v.name, ' ', shape, ' param nums: ', param_num
+        print(v.name, ' ', shape, ' param nums: ', param_num)
         total_parameters += param_num
-    print '\nTotal nums of parameters: %d\n' % total_parameters
+    print('\nTotal nums of parameters: %d\n' % total_parameters)

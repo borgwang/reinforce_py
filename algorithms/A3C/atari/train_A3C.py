@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import threading
 import os
 import argparse
@@ -26,8 +30,8 @@ def main(args):
     # create workers
     for i in range(num_workers):
         worker_summary_writer = summary_writer if i == 0 else None
-        w = Worker(i, Atari(args), global_steps_counter, worker_summary_writer,
-                   args)
+        w = Worker(
+            i, Atari(args), global_steps_counter, worker_summary_writer, args)
         workers.append(w)
 
     saver = tf.train.Saver(max_to_keep=5)
@@ -35,18 +39,18 @@ def main(args):
     with tf.Session() as sess:
         coord = tf.train.Coordinator()
         if args.model_path is not None:
-            print 'Loading model...\n'
+            print('Loading model...\n')
             ckpt = tf.train.get_checkpoint_state(args.model_path)
             saver.restore(sess, ckpt.model_checkpoint_path)
         else:
-            print 'Initializing a new model...\n'
+            print('Initializing a new model...\n')
             sess.run(tf.global_variables_initializer())
         print_params_nums()
         # Start work process for each worker in a seperated thread
         worker_threads = []
         for w in workers:
-            run = lambda: w.run(sess, coord, saver)
-            t = threading.Thread(target=run)
+            run_fn = lambda: w.run(sess, coord, saver)
+            t = threading.Thread(target=run_fn)
             t.start()
             time.sleep(0.5)
             worker_threads.append(t)

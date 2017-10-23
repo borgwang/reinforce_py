@@ -1,10 +1,14 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import tensorflow as tf
 import numpy as np
 import random
 from collections import deque
 
 
-class DQN():
+class DQN(object):
 
     def __init__(self, env, double_q=False):
         # Init replay buffer
@@ -96,14 +100,14 @@ class DQN():
         # Q_value of all actions
         output_Q = self.sess.run(
             self.output_Q, feed_dict={self.input_state: [state]})[0]
-        if policy == "egreedy":
+        if policy == 'egreedy':
             if random.random() <= self.epsilon:  # random action
                 return random.randint(0, self.action_dim-1)
             else:   # greedy action
                 return np.argmax(output_Q)
-        elif policy == "greedy":
+        elif policy == 'greedy':
             return np.argmax(output_Q)
-        elif policy == "random":
+        elif policy == 'random':
             return random.randint(0, self.action_dim-1)
 
     def learn(self, state, action, reward, next_state, done):
@@ -141,7 +145,7 @@ class DQN():
 
         # Calculate target_Q_batch
         target_Q_batch = []
-        for i in xrange(self.batch_size):
+        for i in range(self.batch_size):
             done_state = done_batch[i]
             if done_state:
                 target_Q_batch.append(r_batch[i])

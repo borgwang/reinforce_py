@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import random
 from collections import deque
 import tensorflow as tf
@@ -141,9 +145,9 @@ class DDPG(object):
                     param_num = 1
                     for d in shape:
                         param_num *= d.value
-                    print v.name, ' ', shape, ' param nums: ', param_num
+                    print(v.name, ' ', shape, ' param nums: ', param_num)
                     self.total_parameters += param_num
-                print 'Total nums of parameters: ', self.total_parameters
+                print('Total nums of parameters: ', self.total_parameters)
 
     def sample_action(self, states, explore):
         # is_training suppose to be False when sampling action!!!
@@ -203,16 +207,16 @@ class DDPG(object):
                 states, self.is_training, tf.identity, scope='actor_bn_states')
 
         w1 = tf.get_variable(
-            "w1", [self.state_dim, self.h1_dim], initializer=init)
-        b1 = tf.get_variable("b1", [self.h1_dim], initializer=init)
+            'w1', [self.state_dim, self.h1_dim], initializer=init)
+        b1 = tf.get_variable('b1', [self.h1_dim], initializer=init)
         h1 = tf.matmul(states, w1) + b1
         if bn:
             h1 = self.batch_norm(
                 h1, self.is_training, tf.nn.relu, scope='actor_bn_h1')
 
         w2 = tf.get_variable(
-            "w2", [self.h1_dim, self.h2_dim], initializer=init)
-        b2 = tf.get_variable("b2", [self.h2_dim], initializer=init)
+            'w2', [self.h1_dim, self.h2_dim], initializer=init)
+        b2 = tf.get_variable('b2', [self.h2_dim], initializer=init)
         h2 = tf.matmul(h1, w2) + b2
         if bn:
             h2 = self.batch_norm(
@@ -220,10 +224,10 @@ class DDPG(object):
 
         # use tanh to bound the action
         w3 = tf.get_variable(
-            "w3", [self.h2_dim, self.action_dim],
+            'w3', [self.h2_dim, self.action_dim],
             initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
         b3 = tf.get_variable(
-            "b3", [self.action_dim],
+            'b3', [self.action_dim],
             initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
         a = tf.nn.tanh(tf.matmul(h2, w3) + b3)
 
@@ -237,8 +241,8 @@ class DDPG(object):
                 states, self.is_training, tf.identity, scope='critic_bn_state')
 
         w1 = tf.get_variable(
-            "w1", [self.state_dim, self.h1_dim], initializer=init)
-        b1 = tf.get_variable("b1", [self.h1_dim], initializer=init)
+            'w1', [self.state_dim, self.h1_dim], initializer=init)
+        b1 = tf.get_variable('b1', [self.h1_dim], initializer=init)
         h1 = tf.matmul(states, w1) + b1
         if bn:
             h1 = self.batch_norm(
@@ -248,15 +252,15 @@ class DDPG(object):
         h1_concat = tf.concat([h1, action], 1)
 
         w2 = tf.get_variable(
-            "w2", [self.h1_dim+self.action_dim, self.h2_dim], initializer=init)
-        b2 = tf.get_variable("b2", [self.h2_dim], initializer=init)
+            'w2', [self.h1_dim+self.action_dim, self.h2_dim], initializer=init)
+        b2 = tf.get_variable('b2', [self.h2_dim], initializer=init)
         h2 = tf.nn.relu(tf.matmul(h1_concat, w2) + b2)
 
         w3 = tf.get_variable(
-            "w3", [self.h2_dim, 1],
+            'w3', [self.h2_dim, 1],
             initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
         b3 = tf.get_variable(
-            "b3", [1], initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
+            'b3', [1], initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
         q = tf.matmul(h2, w3) + b3
 
         return q, [w1, b1, w2, b2, w3, b3]

@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 import argparse
 import tensorflow as tf
@@ -26,11 +30,11 @@ def main(args):
     MAX_EPISODES = 100000
     TEST = 10
 
-    for episode in xrange(MAX_EPISODES):
+    for episode in range(MAX_EPISODES):
         # env init
         state = env.reset()
         total_rewards = 0
-        for step in xrange(env.spec.timestep_limit):
+        for step in range(env.spec.timestep_limit):
             action = agent.sample_action(state[np.newaxis, :], explore=True)
             # act
             next_state, reward, done, _ = env.step(action[0])
@@ -42,8 +46,8 @@ def main(args):
             # shift
             state = next_state
             if done:
-                print 'Ep %d global_steps: %d Reward: %.2f' \
-                    % (episode+1, agent.global_steps, total_rewards)
+                print('Ep %d global_steps: %d Reward: %.2f' %
+                      (episode+1, agent.global_steps, total_rewards))
                 # reset ou noise
                 agent.ou.reset()
                 break
@@ -51,9 +55,9 @@ def main(args):
         # Evaluation per 100 ep
         if episode % 100 == 0 and episode > 100:
             total_rewards = 0
-            for ep_eval in xrange(TEST):
+            for ep_eval in range(TEST):
                 state = env.reset()
-                for step_eval in xrange(env.spec.timestep_limit):
+                for step_eval in range(env.spec.timestep_limit):
                     action = agent.sample_action(
                         state[np.newaxis, :], explore=False)
                     next_state, reward, done, _ = env.step(action[0])
@@ -65,11 +69,11 @@ def main(args):
             mean_rewards = total_rewards / TEST
 
             # logging
-            print
-            print 'Episode: %d' % (episode+1)
-            print 'Gloabal steps: %d' % agent.global_steps
-            print 'Mean reward: %.2f' % mean_rewards
-            print
+            print('\n')
+            print('Episode: %d' % (episode + 1))
+            print('Gloabal steps: %d' % agent.global_steps)
+            print('Mean reward: %.2f' % mean_rewards)
+            print('\n')
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)
             save_name = args.save_path \

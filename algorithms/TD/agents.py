@@ -1,5 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import random
+
 from utils import draw_grid, draw_episode_steps
 
 
@@ -31,7 +36,7 @@ class TDAgent(object):
                 self.P[s][a] = 1.0 / len(poss)
 
     def predict(self, episode=1000):
-        for e in xrange(episode):
+        for e in range(episode):
             curr_s = self.env.reset()  # new episode
             while not self.env.is_terminal(curr_s):  # for every time step
                 a = self.select_action(curr_s, policy='greedy')
@@ -102,8 +107,8 @@ class SARSA(TDAgent):
         error = target - self.Q[s][a]
 
         self.Z[s][a] += 1.0
-        for _s in xrange(self.env.num_s):
-            for _a in xrange(self.env.num_a):
+        for _s in range(self.env.num_s):
+            for _a in range(self.env.num_a):
                 self.Q[_s][_a] += self.alpha * error * self.Z[_s][_a]
                 self.Z[_s][_a] *= self.lamda * self.gamma
 
@@ -112,8 +117,8 @@ class SARSA(TDAgent):
 
         if self.env.is_terminal(s):
             self.V = np.sum(self.Q, axis=1)
-            print "episode %d step: %d epsilon: %f" \
-                % (self.episode, self.step, self.epsilon)
+            print('episode %d step: %d epsilon: %f' %
+                  (self.episode, self.step, self.epsilon))
             self.reset_episode()
             self.epsilon -= self.init_episilon / 10000
             # record per 100 episode
@@ -160,7 +165,7 @@ class Qlearn(TDAgent):
         # shift to next state
         if self.env.is_terminal(s):
             self.V = np.sum(self.Q, axis=1)
-            print "episode %d step: %d" % (self.episode, self.step)
+            print('episode %d step: %d' % (self.episode, self.step))
             self.reset_episode()
             self.epsilon -= self.init_episilon / self.max_episodes
             # record per 100 episode

@@ -12,7 +12,6 @@ Related papers:
 In this repository, we implement A3C to slove basic ViZDoom task.   
 
 ## Requirements  
-* Python 2.7  
 * [Numpy](http://www.numpy.org/)   
 * [Tensorflow](http://www.tensorflow.org)  
 * [gym](https://gym.openai.com)  

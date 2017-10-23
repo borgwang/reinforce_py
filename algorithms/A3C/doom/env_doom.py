@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 from vizdoom import *
 
@@ -15,7 +19,7 @@ class Doom(object):
         # setting up Doom environment
         env = DoomGame()
         env.set_doom_scenario_path('basic.wad')
-        env.set_doom_map("map01")
+        env.set_doom_map('map01')
         env.set_screen_resolution(ScreenResolution.RES_160X120)
         env.set_screen_format(ScreenFormat.GRAY8)
         env.set_render_hud(False)

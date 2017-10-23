@@ -6,7 +6,6 @@ Related papers:
 
 
 ## Requirements  
-* Python 2.7  
 * [Numpy](http://www.numpy.org/)   
 * [Tensorflow](http://www.tensorflow.org)  
 * [gym](https://gym.openai.com)  

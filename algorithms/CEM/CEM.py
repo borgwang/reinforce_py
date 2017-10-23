@@ -1,5 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import gym
+
 from gym.spaces import Discrete, Box
 
 
@@ -97,7 +102,7 @@ for i in range(num_iter):
     params_std = np.std(np.asarray(elite_params), axis=0)
 
     # logging
-    print 'Ep %d: mean score: %8.3f. max score: %4.3f' \
-        % (i, np.mean(rewards), np.max(rewards))
-    print 'Eval reward: %.4f' \
-        % run_episode(make_policy(params_mean), env, render=True)
+    print('Ep %d: mean score: %8.3f. max score: %4.3f' %
+          (i, np.mean(rewards), np.max(rewards)))
+    print('Eval reward: %.4f' %
+          run_episode(make_policy(params_mean), env, render=True))

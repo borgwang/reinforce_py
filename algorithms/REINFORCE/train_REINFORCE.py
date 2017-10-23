@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 import argparse
 import gym
@@ -32,14 +36,14 @@ def main(args):
         mean_rewards = None
 
     # load env
-    env = gym.make("Pong-v0")
+    env = gym.make('Pong-v0')
     # main loop
-    for ep in xrange(MAX_EPISODES):
+    for ep in range(MAX_EPISODES):
         # reset env
         total_rewards = 0
         state = env.reset()
 
-        for step in xrange(MAX_STEPS):
+        for step in range(MAX_STEPS):
             # preprocess
             state = preprocess(state)
             # sample actions
@@ -65,8 +69,8 @@ def main(args):
             mean_rewards = 0.99 * mean_rewards + 0.01 * total_rewards
         rounds = (21 - np.abs(total_rewards)) + 21
         average_steps = (step + 1) / rounds
-        print 'Ep%s: %d rounds \nAvg_steps: %.2f Reward: %s Avg_reward: %.4f' \
-            % (ep+1, rounds, average_steps, total_rewards, mean_rewards)
+        print('Ep%s: %d rounds \nAvg_steps: %.2f Reward: %s Avg_reward: %.4f' %
+              (ep+1, rounds, average_steps, total_rewards, mean_rewards))
         if ep % 100 == 0:
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)

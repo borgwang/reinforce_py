@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import os
 import argparse
 import gym
@@ -13,7 +17,7 @@ def main(args):
     FINAL_EPSILON = 0.01    # final value of epsilon
     TEST_EPISODE = 100
 
-    env = gym.make("CartPole-v0")
+    env = gym.make('CartPole-v0')
     agent = DQN(env, double_q=args.double)
     agent.construct_model(args.gpu)
 
@@ -28,10 +32,10 @@ def main(args):
         mean_rewards = None
 
     # Training
-    for ep in xrange(MAX_EPISODE):
+    for ep in range(MAX_EPISODE):
         state = env.reset()
 
-        for step in xrange(env.spec.timestep_limit):
+        for step in range(env.spec.timestep_limit):
             # pick action
             action = agent.sample_action(state, policy='egreedy')
             # Execution action.
@@ -52,17 +56,17 @@ def main(args):
         # Evaluate during training
         if ep % args.log_every == args.log_every-1:
             total_reward = 0
-            for i in xrange(TEST_EPISODE):
+            for i in range(TEST_EPISODE):
                 state = env.reset()
-                for j in xrange(env.spec.timestep_limit):
+                for j in range(env.spec.timestep_limit):
                     action = agent.sample_action(state, policy='greedy')
                     state, reward, done, _ = env.step(action)
                     total_reward += reward
                     if done:
                         break
             mean_rewards = total_reward / float(TEST_EPISODE)
-            print 'Episode:', ep+1, ' Average Reward:', mean_rewards
-            print 'Global steps:', agent.global_step
+            print('Episode:', ep+1, ' Average Reward:', mean_rewards)
+            print('Global steps:', agent.global_step)
 
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)

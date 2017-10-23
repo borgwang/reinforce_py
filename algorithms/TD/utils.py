@@ -1,11 +1,15 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def draw_grid(env, agent, p=True, v=False, r=False):
-    """
+    '''
     Draw the policy(|value|reward setting) at the command prompt.
-    """
+    '''
     arrows = [u'\u2191', u'\u2193', u'\u2190', u'\u2192']
     cliff = u'\u25C6'
     sign = {0: '-', 10: u'\u2713', -1: u'\u2717'}
@@ -20,40 +24,40 @@ def draw_grid(env, agent, p=True, v=False, r=False):
         ba = np.argsort(-np.array(a))[0]
         best.append(ba)
     if r:
-        print
-        print "Environment setting:",
+        print('\n')
+        print('Environment setting:', end=' ')
         for i, r in enumerate(env.R):
             if i % env.env_w == 0:
                 print
             if env.W[i] > 0:
-                print "%1s" % (cliff),
+                print('%1s' % (cliff), end=' ')
             else:
-                print "%1s" % (sign[r]),
-        print '\n'
+                print('%1s' % (sign[r]), end=' ')
+        print('\n')
     if p:
-        print "Trained policy:",
+        print('Trained policy:', end=' ')
         for i, a in enumerate(best):
             if i % env.env_w == 0:
-                print
+                print('\n')
             if env.W[i] == 1:
-                print "%s" % (cliff),
+                print('%s' % (cliff), end=' ')
             elif env.R[i] == 1:
-                print "%s" % (u"\u272A"),
+                print('%s' % (u'\u272A'), end=' ')
             else:
-                print "%s" % (arrows[a]),
-        print '\n'
+                print('%s' % (arrows[a]), end=' ')
+        print('\n')
     if v:
-        print "Value function for each state:",
+        print('Value function for each state:', end=' ')
         for i, v in enumerate(agent.V):
             if i % env.env_w == 0:
-                print
+                print('\n')
             if env.W[i] == 1:
-                print " %-2s " % (cliff),
+                print(' %-2s ' % (cliff), end=' ')
             elif env.R[i] == 1:
-                print "[%.1f]" % (v),
+                print('[%.1f]' % (v), end=' ')
             else:
-                print "%4.1f" % (v),
-        print '\n'
+                print('%4.1f' % (v), end=' ')
+        print('\n')
 
 
 def draw_episode_steps(avg_step_set):

@@ -16,7 +16,6 @@ In CartPole, a pole is attached by an un-actuated joint to a cart, which move al
 We will solve CartPole using DQN Algorithm.   
 
 ## Requirements  
-* Python 2.7  
 * [Numpy](http://www.numpy.org/)   
 * [Tensorflow](http://www.tensorflow.org)  
 * [gym](https://gym.openai.com)  

@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+
 import numpy as np
 import tensorflow as tf
 
@@ -6,7 +10,7 @@ from vizdoom import *
 from net import Net
 
 
-class Worker():
+class Worker(object):
     def __init__(self, worker_id, env, global_ep, args):
         self.name = 'worker_' + str(worker_id)
         self.env = env
@@ -27,7 +31,7 @@ class Worker():
     def run(self, sess, coord, saver):
         running_reward = None
         ep_count = sess.run(self.global_ep)
-        print 'Starting ' + self.name
+        print('Starting ' + self.name)
 
         with sess.as_default(), sess.graph.as_default():
             while not coord.should_stop():
@@ -91,8 +95,8 @@ class Worker():
                     running_reward = ep_reward
 
                 if ep_count % 10 == 0:
-                    print '%s  ep:%d  step:%d  reward:%.3f' % \
-                            (self.name, ep_count, ep_step_count, running_reward)
+                    print('%s  ep:%d  step:%d  reward:%.3f' %
+                          (self.name, ep_count, ep_step_count, running_reward))
 
                 if self.name == 'worker_0':
                     # update global ep
