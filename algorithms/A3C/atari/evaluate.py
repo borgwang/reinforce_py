@@ -7,7 +7,7 @@ import numpy as np
 import os
 import time
 
-from atari_env import Atari
+from atari_env import make_env, A_DIM
 
 
 class Evaluate(object):
@@ -22,12 +22,13 @@ class Evaluate(object):
     '''
 
     def __init__(self, global_net, summary_writer, global_steps_counter, args):
-        self.env = Atari(args, record=args.save_videos)
+        self.env = make_env(args, record_video=args.record_video)
         self.global_net = global_net
         self.summary_writer = summary_writer
         self.global_steps_counter = global_steps_counter
         self.eval_every = args.eval_every
         self.eval_times = 0
+        self.eval_episodes = args.eval_episodes
 
         self.saver = tf.train.Saver(max_to_keep=5)
         self.model_dir = os.path.join(args.save_path, 'models/')
@@ -54,7 +55,7 @@ class Evaluate(object):
             # save models
             if self.eval_times % 10 == 1:
                 save_start = time.time()
-                self.saver.save(sess, self.model_dir+str(global_steps))
+                self.saver.save(sess, self.model_dir + str(global_steps))
                 print('Model saved. Time cost: %.4fs ' %
                       (time.time() - save_start))
 
@@ -63,15 +64,16 @@ class Evaluate(object):
     def _eval(self, sess):
         total_reward = 0.0
         episode_length = 0.0
-        done = False
-        for _ in range(3):
-            s = self.env.new_round()
-            while not done:
+        for _ in range(self.eval_episodes * 5):
+            s = self.env.reset()
+            while True:
                 p = sess.run(self.global_net.policy,
                              {self.global_net.inputs: [s]})
-                a = np.random.choice(np.arange(self.env.a_dim), p=p[0])
-                s, r, dead, done = self.env.step(a)
+                a = np.random.choice(range(A_DIM), p=p[0])
+                s, r, done, _ = self.env.step(a)
                 total_reward += r
                 episode_length += 1.0
-
-        return total_reward / 3, episode_length / 3
+                if done:
+                    break
+        return total_reward / self.eval_episodes, \
+            episode_length / self.eval_episodes

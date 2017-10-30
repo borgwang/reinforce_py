@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from utils import *
 from net import Net
+from atari_env import S_DIM, A_DIM
 
 
 class Worker(object):
@@ -23,7 +24,7 @@ class Worker(object):
 
     def __init__(
             self, worker_id, env, global_steps_counter, summary_writer, args):
-        self.name = 'worker_'+str(worker_id)
+        self.name = 'worker_' + str(worker_id)
         self.env = env
         self.args = args
         self.local_steps = 0
@@ -32,7 +33,7 @@ class Worker(object):
         self.learning_rate = tf.Variable(args.init_learning_rate,
                                          dtype=tf.float32,
                                          trainable=False,
-                                         name=self.name+'_lr')
+                                         name=self.name + '_lr')
         self.delta_lr = \
             args.init_learning_rate / (args.max_steps / args.threads)
         self.trainer = tf.train.RMSPropOptimizer(self.learning_rate,
@@ -40,8 +41,8 @@ class Worker(object):
                                                  epsilon=args.epsilon)
         self.summary_writer = summary_writer
 
-        self.local_net = Net(self.env.s_dim,
-                             self.env.a_dim,
+        self.local_net = Net(S_DIM,
+                             A_DIM,
                              scope=self.name,
                              args=self.args,
                              trainer=self.trainer)
@@ -50,17 +51,17 @@ class Worker(object):
         self.anneal_learning_rate = self._anneal_learning_rate()
 
     def run(self, sess, coord, saver):
-        print('Starting ' + self.name + '\n')
+        print('Starting %s...\n' % self.name)
         with sess.as_default(), sess.graph.as_default():
             while not coord.should_stop():
                 sess.run(self.update_local_op)
                 rollout = []
-                s = self.env.new_round()
+                s = self.env.reset()
                 while True:
                     p, v = sess.run(
                         [self.local_net.policy, self.local_net.value],
                         feed_dict={self.local_net.inputs: [s]})
-                    a = np.random.choice(np.arange(self.env.a_dim), p=p[0])
+                    a = np.random.choice(range(A_DIM), p=p[0])
                     s1, r, dead, done = self.env.step(a)
                     rollout.append([s, a, r, s1, dead, v[0][0]])
                     s = s1

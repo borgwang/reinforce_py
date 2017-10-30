@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+import numpy as np
 import threading
 import os
 import argparse
@@ -9,7 +10,7 @@ import time
 import tensorflow as tf
 import itertools
 
-from atari_env import Atari
+from atari_env import make_env, S_DIM, A_DIM
 from net import Net
 from worker import Worker
 from utils import print_params_nums
@@ -23,16 +24,16 @@ def main(args):
     summary_writer = tf.summary.FileWriter(os.path.join(args.save_path, 'log'))
     global_steps_counter = itertools.count()  # thread-safe
 
-    global_net = Net(Atari.s_dim, Atari.a_dim, 'global', args)
+    global_net = Net(S_DIM, A_DIM, 'global', args)
     num_workers = args.threads
     workers = []
 
     # create workers
-    for i in range(num_workers):
+    for i in range(1, num_workers + 1):
         worker_summary_writer = summary_writer if i == 0 else None
-        w = Worker(
-            i, Atari(args), global_steps_counter, worker_summary_writer, args)
-        workers.append(w)
+        worker = Worker(i, make_env(args), global_steps_counter,
+                        worker_summary_writer, args)
+        workers.append(worker)
 
     saver = tf.train.Saver(max_to_keep=5)
 
@@ -48,9 +49,8 @@ def main(args):
         print_params_nums()
         # Start work process for each worker in a seperated thread
         worker_threads = []
-        for w in workers:
-            run_fn = lambda: w.run(sess, coord, saver)
-            t = threading.Thread(target=run_fn)
+        for worker in workers:
+            t = threading.Thread(target=lambda: worker.run(sess, coord, saver))
             t.start()
             time.sleep(0.5)
             worker_threads.append(t)
@@ -83,11 +83,14 @@ def args_parse():
         help='Numbers of parallel threads. [num_cpu_cores] by default')
     # evaluate
     parser.add_argument(
-        '--eval_every', default=300, type=int,
+        '--eval_every', default=500, type=int,
         help='Evaluate the global policy every N seconds')
     parser.add_argument(
-        '--save_videos', default=True, type=bool,
+        '--record_video', default=True, type=bool,
         help='Whether to save videos when evaluating')
+    parser.add_argument(
+        '--eval_episodes', default=5, type=int,
+        help='Numbers of episodes per evaluation')
     # hyperparameters
     parser.add_argument(
         '--init_learning_rate', default=7e-4, type=float,
@@ -106,10 +109,10 @@ def args_parse():
         '--entropy_ratio', default=0.01, type=float,
         help='Initial weight of entropy loss')
     parser.add_argument(
-        '--clip_grads', default=40.0, type=float,
+        '--clip_grads', default=40, type=float,
         help='global norm gradients clipping')
     parser.add_argument(
-        '--epsilon', default=0.1, type=float,
+        '--epsilon', default=1e-5, type=float,
         help='epsilon of rmsprop optimizer')
 
     return parser.parse_args()

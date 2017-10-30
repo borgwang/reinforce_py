@@ -41,22 +41,36 @@ class Net(object):
         '''
         Biuld the computational graph.
         '''
-        conv1 = slim.conv2d(inputs=inputs, num_outputs=16,
-                            activation_fn=tf.nn.relu, kernel_size=[8, 8],
-                            stride=[4, 4], padding='VALID', scope='share_conv1')
-        conv2 = slim.conv2d(inputs=conv1, num_outputs=32,
-                            activation_fn=tf.nn.relu, kernel_size=[4, 4],
-                            stride=[2, 2], padding='VALID', scope='share_conv2')
-        hidden = slim.fully_connected(inputs=slim.flatten(conv2),
-                                      num_outputs=256,
-                                      activation_fn=tf.nn.relu,
-                                      scope='share_fc')
-
-        self.policy = slim.fully_connected(inputs=hidden,
+        conv1 = slim.conv2d(inputs=inputs,
+                            num_outputs=32,
+                            kernel_size=[8, 8],
+                            stride=[4, 4],
+                            padding='VALID',
+                            weights_initializer=ortho_init(),
+                            scope='share_conv1')
+        conv2 = slim.conv2d(inputs=conv1,
+                            num_outputs=64,
+                            kernel_size=[4, 4],
+                            stride=[2, 2],
+                            padding='VALID',
+                            weights_initializer=ortho_init(),
+                            scope='share_conv2')
+        conv3 = slim.conv2d(inputs=conv2,
+                            num_outputs=64,
+                            kernel_size=[3, 3],
+                            stride=[1, 1],
+                            padding='VALID',
+                            weights_initializer=ortho_init(),
+                            scope='share_conv3')
+        fc = slim.fully_connected(inputs=slim.flatten(conv3),
+                                  num_outputs=512,
+                                  weights_initializer=ortho_init(np.sqrt(2)),
+                                  scope='share_fc1')
+        self.policy = slim.fully_connected(inputs=fc,
                                            num_outputs=self.a_dim,
                                            activation_fn=tf.nn.softmax,
                                            scope='policy_out')
-        self.value = slim.fully_connected(inputs=hidden, num_outputs=1,
+        self.value = slim.fully_connected(inputs=fc, num_outputs=1,
                                           activation_fn=None,
                                           scope='value_out')
 
@@ -101,7 +115,7 @@ class Net(object):
             trainer.apply_gradients(zip(self.grads, global_vars))
 
         # summaries
-        if self.scope == 'worker_0':
+        if self.scope == 'worker_1':
             tf.summary.scalar('loss/entropy', tf.reduce_sum(self.entropy))
             tf.summary.scalar('loss/actor_loss', self.actor_loss)
             tf.summary.scalar('loss/critic_loss', self.critic_loss)
