@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import argparse
@@ -12,16 +11,15 @@ from utils import *
 
 
 def main(args):
-    # preprocess input state
-    def preprocess(obser):
-        '''preprocess 210x160x3 frame into 6400(80x80) flat vector'''
-        obser = obser[35:195]  # 160x160x3
-        obser = obser[::2, ::2, 0]  # downsample (80x80)
-        obser[obser == 144] = 0
-        obser[obser == 109] = 0
-        obser[obser != 0] = 1
 
-        return obser.astype(np.float).ravel()
+    def preprocess(obs):
+        obs = obs[35:195]
+        obs = obs[::2, ::2, 0]
+        obs[obs == 144] = 0
+        obs[obs == 109] = 0
+        obs[obs != 0] = 1
+
+        return obs.astype(np.float).ravel()
 
     INPUT_DIM = 80 * 80
     HIDDEN_UNITS = 200

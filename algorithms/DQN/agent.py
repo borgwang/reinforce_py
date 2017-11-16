@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import tensorflow as tf
@@ -32,12 +31,12 @@ class DQN(object):
     def network(self, input_state):
         hidden_unit = 50
         w1 = tf.Variable(tf.div(tf.random_normal(
-                [self.state_dim, hidden_unit]), np.sqrt(self.state_dim)))
+            [self.state_dim, hidden_unit]), np.sqrt(self.state_dim)))
         b1 = tf.Variable(tf.constant(0.0, shape=[hidden_unit]))
         hidden = tf.nn.relu(tf.matmul(input_state, w1) + b1)
 
         w2 = tf.Variable(tf.div(tf.random_normal(
-                [hidden_unit, self.action_dim]), np.sqrt(hidden_unit)))
+            [hidden_unit, self.action_dim]), np.sqrt(hidden_unit)))
         b2 = tf.Variable(tf.constant(0.0, shape=[self.action_dim]))
         output_Q = tf.matmul(hidden, w2) + b2
 
@@ -50,8 +49,8 @@ class DQN(object):
         else:  # use GPU
             device = '/gpu:' + str(gpu)
             sess_config = tf.ConfigProto(
-                            log_device_placement=True,
-                            allow_soft_placement=True)
+                log_device_placement=True,
+                allow_soft_placement=True)
             sess_config.gpu_options.allow_growth = True
 
         self.sess = tf.Session(config=sess_config)
@@ -73,7 +72,7 @@ class DQN(object):
 
                 self.loss = tf.reduce_mean(tf.square(self.target_Q - action_Q))
                 optimizer = tf.train.RMSPropOptimizer(
-                        self.learning_rate, self.decay_rate)
+                    self.learning_rate, self.decay_rate)
                 self.train_op = optimizer.minimize(self.loss)
 
             # Target network
@@ -81,9 +80,9 @@ class DQN(object):
                 self.target_output_Q = self.network(self.input_state)
 
             q_parameters = tf.get_collection(
-                    tf.GraphKeys.TRAINABLE_VARIABLES, scope='q_network')
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope='q_network')
             target_q_parameters = tf.get_collection(
-                    tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_network')
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope='target_network')
 
             with tf.name_scope('update_target_network'):
                 self.update_target_network = []
@@ -102,13 +101,13 @@ class DQN(object):
             self.output_Q, feed_dict={self.input_state: [state]})[0]
         if policy == 'egreedy':
             if random.random() <= self.epsilon:  # random action
-                return random.randint(0, self.action_dim-1)
+                return random.randint(0, self.action_dim - 1)
             else:   # greedy action
                 return np.argmax(output_Q)
         elif policy == 'greedy':
             return np.argmax(output_Q)
         elif policy == 'random':
-            return random.randint(0, self.action_dim-1)
+            return random.randint(0, self.action_dim - 1)
 
     def learn(self, state, action, reward, next_state, done):
         onehot_action = np.zeros(self.action_dim)
@@ -155,7 +154,7 @@ class DQN(object):
 
         # Train the network
         self.sess.run(self.train_op, {
-                self.target_Q: target_Q_batch,
-                self.input_action: a_batch,
-                self.input_state: s_batch
+            self.target_Q: target_Q_batch,
+            self.input_action: a_batch,
+            self.input_state: s_batch
         })

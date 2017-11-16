@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import numpy as np
@@ -28,7 +27,7 @@ def draw_grid(env, agent, p=True, v=False, r=False):
         print('Environment setting:', end=' ')
         for i, r in enumerate(env.R):
             if i % env.env_w == 0:
-                print
+                print('\n')
             if env.W[i] > 0:
                 print('%1s' % (cliff), end=' ')
             else:

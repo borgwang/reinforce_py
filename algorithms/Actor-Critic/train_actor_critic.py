@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import os
@@ -77,12 +76,11 @@ def main(args):
         # update model per episode
         agent.update_model()
         # model saving
-        if ep % args.save_every == args.save_every-1:
+        if ep > 0 and ep % args.save_every == 0:
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)
-            save_name = args.save_path + str(round(mean_rewards, 2)) \
-                + '_'+str(ep_base + ep+1)
-            saver.save(agent.sess, save_name)
+            save_name = str(round(mean_rewards, 2)) + '_' + str(ep_base + ep+1)
+            saver.save(agent.sess, args.save_path + save_name)
 
 
 def args_parse():

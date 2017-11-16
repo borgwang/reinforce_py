@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import numpy as np
@@ -61,7 +60,7 @@ class ActorCritic(object):
             # actor gradient
             actor_gradients = tf.gradients(
                 self.actor_loss, actor_parameters, self.advantage)
-            self.actor_gradients = zip(actor_gradients, actor_parameters)
+            self.actor_gradients = list(zip(actor_gradients, actor_parameters))
 
             # critic loss
             self.critic_loss = tf.reduce_mean(
@@ -69,7 +68,6 @@ class ActorCritic(object):
             # critic gradient
             self.critic_gradients = self.optimizer.compute_gradients(
                 self.critic_loss, critic_parameters)
-
             self.gradients = self.actor_gradients + self.critic_gradients
 
             # clip gradient

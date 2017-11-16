@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import os
@@ -12,7 +11,8 @@ from agent import DDPG
 
 
 def main(args):
-    env = gym.make('Walker2d-v1')
+    # env = gym.make('Walker2d-v1')
+    env = gym.make('Pendulum-v0')
 
     agent = DDPG(env)
     agent.construct_model(args.gpu)

@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import os
@@ -9,10 +8,19 @@ import numpy as np
 import tensorflow as tf
 
 from agent import REINFORCE
-from utils import *
 
 
 def main(args):
+
+    def preprocess(obs):
+        obs = obs[35:195]
+        obs = obs[::2, ::2, 0]
+        obs[obs == 144] = 0
+        obs[obs == 109] = 0
+        obs[obs != 0] = 1
+
+        return obs.astype(np.float).ravel()
+
     MODEL_PATH = args.model_path
     INPUT_DIM = 80 * 80
     HIDDEN_UNITS = 200
@@ -71,12 +79,11 @@ def main(args):
         average_steps = (step + 1) / rounds
         print('Ep%s: %d rounds \nAvg_steps: %.2f Reward: %s Avg_reward: %.4f' %
               (ep+1, rounds, average_steps, total_rewards, mean_rewards))
-        if ep % 100 == 0:
+        if ep > 0 and ep % 100 == 0:
             if not os.path.isdir(args.save_path):
                 os.makedirs(args.save_path)
-            save_name = args.save_path + str(round(mean_rewards, 2)) + '_' \
-                + str(ep_base+ep+1)
-            saver.save(agent.sess, save_name)
+            save_name = str(round(mean_rewards, 2)) + '_' + str(ep_base+ep+1)
+            saver.save(agent.sess, args.save_path + save_name)
 
 
 def args_parse():
@@ -85,7 +92,7 @@ def args_parse():
         '--model_path', default=None,
         help='Whether to use a saved model. (*None|model path)')
     parser.add_argument(
-        '--save_path', default='./model',
+        '--save_path', default='./model/',
         help='Path to save a model during training.')
     parser.add_argument(
         '--gpu', default=-1,

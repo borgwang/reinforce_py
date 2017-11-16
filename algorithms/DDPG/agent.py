@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import random
@@ -57,37 +56,37 @@ class DDPG(object):
             #  w.r.t. action
             with tf.name_scope('predict_actions'):
                 self.states = tf.placeholder(
-                        tf.float32, [None, self.state_dim], name='states')
+                    tf.float32, [None, self.state_dim], name='states')
                 self.action = tf.placeholder(
-                        tf.float32, [None, self.action_dim], name='action')
+                    tf.float32, [None, self.action_dim], name='action')
                 self.is_training = tf.placeholder(tf.bool, name='is_training')
 
                 with tf.variable_scope('actor_network'):
                     self.action_outputs, self.actor_params = \
-                            self.actor(self.states, bn=True)
+                        self.actor(self.states, bn=True)
                 with tf.variable_scope('critic_network'):
                     self.value_outputs, self.critic_params = \
-                            self.critic(self.states, self.action, bn=False)
+                        self.critic(self.states, self.action, bn=False)
                     self.action_gradients = tf.gradients(
                         self.value_outputs, self.action)[0]
 
             # estimate target_q for update critic
             with tf.name_scope('estimate_target_q'):
                 self.next_states = tf.placeholder(
-                        tf.float32, [None, self.state_dim], name='next_states')
+                    tf.float32, [None, self.state_dim], name='next_states')
                 self.mask = tf.placeholder(
-                        tf.float32, [None, ], name='mask')
+                    tf.float32, [None, ], name='mask')
                 self.rewards = tf.placeholder(
                     tf.float32, [None, ], name='rewards')
 
                 with tf.variable_scope('target_actor_network'):
                     self.target_actor_outputs, self.target_actor_params = \
-                            self.actor(self.next_states, bn=True)
+                        self.actor(self.next_states, bn=True)
                 with tf.variable_scope('target_critic_network'):
                     self.target_value_outputs, self.target_critic_params = \
-                            self.critic(self.next_states,
-                                        self.target_actor_outputs,
-                                        bn=False)
+                        self.critic(self.next_states,
+                                    self.target_actor_outputs,
+                                    bn=False)
 
                 self.target_q = self.rewards + self.gamma * \
                     (self.target_value_outputs[:, 0] * self.mask)
@@ -109,11 +108,11 @@ class DDPG(object):
                         critic_loss, self.critic_params)
                 # actor gradients
                 self.q_action_grads = tf.placeholder(
-                        tf.float32, [None, self.action_dim],
-                        name='q_action_grads')
+                    tf.float32, [None, self.action_dim],
+                    name='q_action_grads')
                 actor_gradients = tf.gradients(
-                        self.action_outputs, self.actor_params,
-                        -self.q_action_grads)
+                    self.action_outputs, self.actor_params,
+                    -self.q_action_grads)
                 self.actor_gradients = zip(actor_gradients, self.actor_params)
                 # apply gradient to update model
                 self.train_actor = self.actor_optimizer.apply_gradients(
@@ -128,13 +127,13 @@ class DDPG(object):
                 for v_source, v_target in zip(
                         self.actor_params, self.target_actor_params):
                     update_op = v_target.assign_sub(
-                            self.target_update_rate * (v_target - v_source))
+                        self.target_update_rate * (v_target - v_source))
                     target_networks_update.append(update_op)
 
                 for v_source, v_target in zip(
                         self.critic_params, self.target_critic_params):
                     update_op = v_target.assign_sub(
-                            self.target_update_rate * (v_target - v_source))
+                        self.target_update_rate * (v_target - v_source))
                     target_networks_update.append(update_op)
 
                 self.target_networks_update = tf.group(*target_networks_update)
@@ -171,7 +170,7 @@ class DDPG(object):
         # get batch
         batch = random.sample(self.replay_buffer, self.batch_size)
         s, _a, r, next_s, done = np.vstack(batch).T.tolist()
-        mask = -np.array(done)
+            mask = ~np.array(done)
 
         # compute a = u(s)
         a = self.sess.run(self.action_outputs, {
@@ -201,7 +200,7 @@ class DDPG(object):
 
     def actor(self, states, bn=False):
         init = tf.contrib.layers.variance_scaling_initializer(
-                factor=1.0, mode='FAN_IN', uniform=True)
+            factor=1.0, mode='FAN_IN', uniform=True)
         if bn:
             states = self.batch_norm(
                 states, self.is_training, tf.identity, scope='actor_bn_states')
@@ -235,7 +234,7 @@ class DDPG(object):
 
     def critic(self, states, action, bn=False):
         init = tf.contrib.layers.variance_scaling_initializer(
-                factor=1.0, mode='FAN_IN', uniform=True)
+            factor=1.0, mode='FAN_IN', uniform=True)
         if bn:
             states = self.batch_norm(
                 states, self.is_training, tf.identity, scope='critic_bn_state')
@@ -252,7 +251,7 @@ class DDPG(object):
         h1_concat = tf.concat([h1, action], 1)
 
         w2 = tf.get_variable(
-            'w2', [self.h1_dim+self.action_dim, self.h2_dim], initializer=init)
+            'w2', [self.h1_dim + self.action_dim, self.h2_dim], initializer=init)
         b2 = tf.get_variable('b2', [self.h2_dim], initializer=init)
         h2 = tf.nn.relu(tf.matmul(h1_concat, w2) + b2)
 
@@ -270,16 +269,16 @@ class DDPG(object):
         return tf.cond(
             is_training,
             lambda: tf.contrib.layers.batch_norm(
-                    x,
-                    activation_fn=activation_fn,
-                    center=True,
-                    scale=True,
-                    updates_collections=None,
-                    is_training=True,
-                    reuse=None,
-                    scope=scope,
-                    decay=0.9,
-                    epsilon=1e-5),
+                x,
+                activation_fn=activation_fn,
+                center=True,
+                scale=True,
+                updates_collections=None,
+                is_training=True,
+                reuse=None,
+                scope=scope,
+                decay=0.9,
+                epsilon=1e-5),
             lambda: tf.contrib.layers.batch_norm(
                 x,
                 activation_fn=activation_fn,

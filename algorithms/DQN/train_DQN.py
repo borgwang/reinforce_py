@@ -1,5 +1,4 @@
 from __future__ import print_function
-from __future__ import absolute_import
 from __future__ import division
 
 import os
@@ -64,7 +63,7 @@ def main(args):
                     total_reward += reward
                     if done:
                         break
-            mean_rewards = total_reward / float(TEST_EPISODE)
+            mean_rewards = total_reward / TEST_EPISODE
             print('Episode:', ep+1, ' Average Reward:', mean_rewards)
             print('Global steps:', agent.global_step)
 
