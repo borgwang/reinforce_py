@@ -11,33 +11,28 @@ from ou_noise import OUNoise
 
 class DDPG(object):
 
-    def __init__(self, env):
+    def __init__(self, env, args):
         self.action_dim = env.action_space.shape[0]
         self.state_dim = env.observation_space.shape[0]
-        self.h1_dim = 400
-        self.h2_dim = 300
 
-        self.actor_learning_rate = 1e-4
-        self.critic_learning_rate = 1e-3
+        self.actor_lr = args.a_lr
+        self.critic_lr = args.c_lr
 
-        self.gamma = 0.99
+        self.gamma = args.gamma
 
         # Ornstein-Uhlenbeck noise parameters
-        self.noise_theta = 0.15
-        self.noise_sigma = 0.20
         self.ou = OUNoise(
-            self.action_dim, theta=self.noise_theta, sigma=self.noise_sigma)
+            self.action_dim, theta=args.noise_theta, sigma=args.noise_sigma)
 
-        self.replay_buffer_size = 1000000
-        self.replay_buffer = deque(maxlen=self.replay_buffer_size)
-        self.replay_start_size = 1000
+        self.replay_buffer = deque(maxlen=args.buffer_size)
+        self.replay_start_size = args.replay_start_size
 
-        self.batch_size = 64
+        self.batch_size = args.batch_size
 
-        self.target_update_rate = 0.001
+        self.target_update_rate = args.target_update_rate
         self.total_parameters = 0
         self.global_steps = 0
-        self.reg_param = 0.01
+        self.reg_param = args.reg_param
 
     def construct_model(self, gpu):
         if gpu == -1:  # use CPU
@@ -63,10 +58,10 @@ class DDPG(object):
 
                 with tf.variable_scope('actor_network'):
                     self.action_outputs, self.actor_params = \
-                        self.actor(self.states, bn=True)
+                        self._build_actor(self.states, bn=True)
                 with tf.variable_scope('critic_network'):
                     self.value_outputs, self.critic_params = \
-                        self.critic(self.states, self.action, bn=False)
+                        self._build_critic(self.states, self.action, bn=False)
                     self.action_gradients = tf.gradients(
                         self.value_outputs, self.action)[0]
 
@@ -81,12 +76,12 @@ class DDPG(object):
 
                 with tf.variable_scope('target_actor_network'):
                     self.target_actor_outputs, self.target_actor_params = \
-                        self.actor(self.next_states, bn=True)
+                        self._build_actor(self.next_states, bn=True)
                 with tf.variable_scope('target_critic_network'):
                     self.target_value_outputs, self.target_critic_params = \
-                        self.critic(self.next_states,
-                                    self.target_actor_outputs,
-                                    bn=False)
+                        self._build_critic(self.next_states,
+                                           self.target_actor_outputs,
+                                           bn=False)
 
                 self.target_q = self.rewards + self.gamma * \
                     (self.target_value_outputs[:, 0] * self.mask)
@@ -94,9 +89,9 @@ class DDPG(object):
             with tf.name_scope('compute_gradients'):
                 # optimizer
                 self.actor_optimizer = tf.train.AdamOptimizer(
-                    self.actor_learning_rate)
+                    self.actor_lr)
                 self.critic_optimizer = tf.train.AdamOptimizer(
-                    self.critic_learning_rate)
+                    self.critic_lr)
                 # critic gradients
                 td_error = self.target_q - self.value_outputs[:, 0]
                 critic_mse = tf.reduce_mean(tf.square(td_error))
@@ -170,7 +165,7 @@ class DDPG(object):
         # get batch
         batch = random.sample(self.replay_buffer, self.batch_size)
         s, _a, r, next_s, done = np.vstack(batch).T.tolist()
-            mask = ~np.array(done)
+        mask = ~np.array(done)
 
         # compute a = u(s)
         a = self.sess.run(self.action_outputs, {
@@ -198,7 +193,9 @@ class DDPG(object):
         # update target network
         self.sess.run(self.target_networks_update)
 
-    def actor(self, states, bn=False):
+    def _build_actor(self, states, bn=False):
+        h1_dim = 400
+        h2_dim = 300
         init = tf.contrib.layers.variance_scaling_initializer(
             factor=1.0, mode='FAN_IN', uniform=True)
         if bn:
@@ -206,16 +203,16 @@ class DDPG(object):
                 states, self.is_training, tf.identity, scope='actor_bn_states')
 
         w1 = tf.get_variable(
-            'w1', [self.state_dim, self.h1_dim], initializer=init)
-        b1 = tf.get_variable('b1', [self.h1_dim], initializer=init)
+            'w1', [self.state_dim, h1_dim], initializer=init)
+        b1 = tf.get_variable('b1', [h1_dim], initializer=init)
         h1 = tf.matmul(states, w1) + b1
         if bn:
             h1 = self.batch_norm(
                 h1, self.is_training, tf.nn.relu, scope='actor_bn_h1')
 
         w2 = tf.get_variable(
-            'w2', [self.h1_dim, self.h2_dim], initializer=init)
-        b2 = tf.get_variable('b2', [self.h2_dim], initializer=init)
+            'w2', [h1_dim, h2_dim], initializer=init)
+        b2 = tf.get_variable('b2', [h2_dim], initializer=init)
         h2 = tf.matmul(h1, w2) + b2
         if bn:
             h2 = self.batch_norm(
@@ -223,7 +220,7 @@ class DDPG(object):
 
         # use tanh to bound the action
         w3 = tf.get_variable(
-            'w3', [self.h2_dim, self.action_dim],
+            'w3', [h2_dim, self.action_dim],
             initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
         b3 = tf.get_variable(
             'b3', [self.action_dim],
@@ -232,7 +229,9 @@ class DDPG(object):
 
         return a, [w1, b1, w2, b2, w3, b3]
 
-    def critic(self, states, action, bn=False):
+    def _build_critic(self, states, action, bn=False):
+        h1_dim = 400
+        h2_dim = 300
         init = tf.contrib.layers.variance_scaling_initializer(
             factor=1.0, mode='FAN_IN', uniform=True)
         if bn:
@@ -240,8 +239,8 @@ class DDPG(object):
                 states, self.is_training, tf.identity, scope='critic_bn_state')
 
         w1 = tf.get_variable(
-            'w1', [self.state_dim, self.h1_dim], initializer=init)
-        b1 = tf.get_variable('b1', [self.h1_dim], initializer=init)
+            'w1', [self.state_dim, h1_dim], initializer=init)
+        b1 = tf.get_variable('b1', [h1_dim], initializer=init)
         h1 = tf.matmul(states, w1) + b1
         if bn:
             h1 = self.batch_norm(
@@ -251,12 +250,12 @@ class DDPG(object):
         h1_concat = tf.concat([h1, action], 1)
 
         w2 = tf.get_variable(
-            'w2', [self.h1_dim + self.action_dim, self.h2_dim], initializer=init)
-        b2 = tf.get_variable('b2', [self.h2_dim], initializer=init)
+            'w2', [h1_dim + self.action_dim, h2_dim], initializer=init)
+        b2 = tf.get_variable('b2', [h2_dim], initializer=init)
         h2 = tf.nn.relu(tf.matmul(h1_concat, w2) + b2)
 
         w3 = tf.get_variable(
-            'w3', [self.h2_dim, 1],
+            'w3', [h2_dim, 1],
             initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
         b3 = tf.get_variable(
             'b3', [1], initializer=tf.random_uniform_initializer(-3e-4, 3e-4))

@@ -9,7 +9,7 @@ Related papers:
 Double DQN is also implemented. Pass a --double=True argument to enable Double DQN. Since the CartPole task is easy to solve, Double DQN actually produce very little effect.  
 
 ## CartPole  
-In CartPole, a pole is attached by an un-actuated joint to a cart, which move along a track. The agent contrl the cart by moving left or right in order to ballance the pole.   
+In CartPole, a pole is attached by an un-actuated joint to a cart, which move along a track. The agent contrl the cart by moving left or right in order to ballance the pole. More about CartPole see [OpenAI wiki](https://github.com/openai/gym/wiki/CartPole-v0)  
 
 <img src="https://github.com/borgwang/reinforce_py/raw/master/images/cartpole.png" width = "256" height = "200" alt="CartPole" align=center />   
 
@@ -23,3 +23,7 @@ We will solve CartPole using DQN Algorithm.
 
 ## Run  
     python train_DQN.py --double=True/False     # Enable/Disable Double DQN  
+
+## Training plot  
+
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/dqn.png" width = "256" height = "200" alt="DQN" align=center />   

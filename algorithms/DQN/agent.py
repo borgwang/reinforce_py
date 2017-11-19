@@ -9,27 +9,25 @@ from collections import deque
 
 class DQN(object):
 
-    def __init__(self, env, double_q=False):
+    def __init__(self, env, args):
         # Init replay buffer
-        self.memory_size = 10000
-        self.replay_buffer = deque(maxlen=self.memory_size)
+        self.replay_buffer = deque(maxlen=args.buffer_size)
 
         # Init parameters
         self.global_step = 0
-        self.epsilon = 0.5
+        self.epsilon = args.init_epsilon
         self.state_dim = env.observation_space.shape[0]
         self.action_dim = env.action_space.n
 
-        self.gamma = 0.99
-        self.decay_rate = 0.99
-        self.learning_rate = 1e-4
-        self.batch_size = 32
+        self.gamma = args.gamma
+        self.learning_rate = args.lr
+        self.batch_size = args.batch_size
 
-        self.double_q = double_q
-        self.target_network_update_interval = 1000
+        self.double_q = args.double_q
+        self.target_network_update_interval = args.target_network_update
 
     def network(self, input_state):
-        hidden_unit = 50
+        hidden_unit = 100
         w1 = tf.Variable(tf.div(tf.random_normal(
             [self.state_dim, hidden_unit]), np.sqrt(self.state_dim)))
         b1 = tf.Variable(tf.constant(0.0, shape=[hidden_unit]))
@@ -71,8 +69,7 @@ class DQN(object):
                     self.output_Q, self.input_action), reduction_indices=1)
 
                 self.loss = tf.reduce_mean(tf.square(self.target_Q - action_Q))
-                optimizer = tf.train.RMSPropOptimizer(
-                    self.learning_rate, self.decay_rate)
+                optimizer = tf.train.RMSPropOptimizer(self.learning_rate)
                 self.train_op = optimizer.minimize(self.loss)
 
             # Target network
@@ -88,7 +85,9 @@ class DQN(object):
                 self.update_target_network = []
                 for v_source, v_target in zip(
                         q_parameters, target_q_parameters):
-                    update_op = v_target.assign(v_source)
+                    # update_op = v_target.assign(v_source)
+                    # soft target update to stabilize training
+                    update_op = v_target.assign_sub(0.1 * (v_target - v_source))
                     self.update_target_network.append(update_op)
                 # group all update together
                 self.update_target_network = tf.group(

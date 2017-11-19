@@ -11,10 +11,9 @@ from agent import DDPG
 
 
 def main(args):
-    # env = gym.make('Walker2d-v1')
-    env = gym.make('Pendulum-v0')
+    env = gym.make('Walker2d-v1')
 
-    agent = DDPG(env)
+    agent = DDPG(env, args)
     agent.construct_model(args.gpu)
 
     saver = tf.train.Saver(max_to_keep=1)
@@ -27,10 +26,7 @@ def main(args):
         agent.sess.run(tf.global_variables_initializer())
         ep_base = 0
 
-    MAX_EPISODES = 100000
-    TEST = 10
-
-    for episode in range(MAX_EPISODES):
+    for episode in range(args.max_ep):
         # env init
         state = env.reset()
         total_rewards = 0
@@ -55,7 +51,7 @@ def main(args):
         # Evaluation per 100 ep
         if episode % 100 == 0 and episode > 100:
             total_rewards = 0
-            for ep_eval in range(TEST):
+            for ep_eval in range(args.test_ep):
                 state = env.reset()
                 for step_eval in range(env.spec.timestep_limit):
                     action = agent.sample_action(
@@ -66,7 +62,7 @@ def main(args):
                     if done:
                         break
 
-            mean_rewards = total_rewards / TEST
+            mean_rewards = total_rewards / args.test_ep
 
             # logging
             print('\n')
@@ -92,6 +88,35 @@ def args_parse():
         parser.add_argument(
             '--gpu', default=-1,
             help='running on a specify gpu, -1 indicates using cpu')
+
+        parser.add_argument(
+            '--max_ep', type=int, default=100000, help='Number of training episodes')
+        parser.add_argument(
+            '--test_ep', type=int, default=10, help='Number of test episodes')
+        parser.add_argument(
+            '--a_lr', type=float, default=1e-4, help='Actor learning rate')
+        parser.add_argument(
+            '--c_lr', type=float, default=1e-3, help='Critic learning rate')
+        parser.add_argument(
+            '--batch_size', type=int, default=64, help='Size of training batch')
+        parser.add_argument(
+            '--gamma', type=float, default=0.99, help='Discounted factor')
+        parser.add_argument(
+            '--target_update_rate', type=float, default=0.001,
+            help='parameter of soft target update')
+        parser.add_argument(
+            '--reg_param', type=float, default=0.01, help='l2 regularization')
+        parser.add_argument(
+            '--buffer_size', type=int, default=1000000, help='Size of memory buffer')
+        parser.add_argument(
+            '--replay_start_size', type=int, default=1000,
+            help='Number of steps before learning from replay memory')
+        parser.add_argument(
+            '--noise_theta', type=float, default=0.15,
+            help='Ornstein-Uhlenbeck noise parameters')
+        parser.add_argument(
+            '--noise_sigma', type=float, default=0.20,
+            help='Ornstein-Uhlenbeck noise parameters')
         return parser.parse_args()
 
 
