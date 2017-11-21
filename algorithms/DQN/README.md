@@ -22,7 +22,9 @@ We will solve CartPole using DQN Algorithm.
 
 
 ## Run  
-    python train_DQN.py --double=True/False     # Enable/Disable Double DQN  
+    python train_DQN.py
+    python train_DQN.py -h   # training options and hyper parameters settings
+
 
 ## Training plot  
 
