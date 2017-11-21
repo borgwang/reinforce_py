@@ -18,3 +18,11 @@ Walker2d is a continuous control task base on [Mujoco](http://www.mujoco.org/). 
 * [Tensorflow](http://www.tensorflow.org)  
 * [gym](https://gym.openai.com)  
 * [Mujoco](https://www.roboti.us/index.html)
+
+## Results  
+
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/walker2d.gif" width = "300" height = "300" alt="walker2d" align=center />   
+Results after training for 1.5M steps
+
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/ddpg.png" width = "320" height = "240" alt="ddpg" align=center />
+Training rewards (smoothed)

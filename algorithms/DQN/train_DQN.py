@@ -55,7 +55,7 @@ def main(args):
         else:
             rewards_history.append(
                 rewards_history[-1] * 0.9 + ep_rewards * 0.1)
-        # Update epsilon
+        # Decay epsilon
         if agent.epsilon > args.final_epsilon:
             agent.epsilon -= (args.init_epsilon - args.final_epsilon) / args.max_ep
 

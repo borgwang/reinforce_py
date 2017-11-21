@@ -26,4 +26,4 @@ We will solve CartPole using DQN Algorithm.
 
 ## Training plot  
 
-<img src="https://github.com/borgwang/reinforce_py/raw/master/images/dqn.png" width = "256" height = "200" alt="DQN" align=center />   
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/dqn.png" width = "512" height = "400" alt="DQN" align=center />   

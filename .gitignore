@@ -81,3 +81,7 @@ ENV/
 
 # mkdocs documentation
 /site
+
+# ignore saved models
+models/
+model/

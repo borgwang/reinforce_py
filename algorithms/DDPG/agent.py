@@ -4,6 +4,7 @@ from __future__ import division
 import random
 from collections import deque
 import tensorflow as tf
+import tensorflow.contrib.layers as tcl
 import numpy as np
 
 from ou_noise import OUNoise
@@ -47,8 +48,7 @@ class DDPG(object):
         self.sess = tf.Session(config=sess_config)
 
         with tf.device(device):
-            # output action and q_value and compute gradients of q_val
-            #  w.r.t. action
+            # output action, q_value and gradients of q_val w.r.t. action
             with tf.name_scope('predict_actions'):
                 self.states = tf.placeholder(
                     tf.float32, [None, self.state_dim], name='states')
@@ -56,42 +56,36 @@ class DDPG(object):
                     tf.float32, [None, self.action_dim], name='action')
                 self.is_training = tf.placeholder(tf.bool, name='is_training')
 
-                with tf.variable_scope('actor_network'):
-                    self.action_outputs, self.actor_params = \
-                        self._build_actor(self.states, bn=True)
-                with tf.variable_scope('critic_network'):
-                    self.value_outputs, self.critic_params = \
-                        self._build_critic(self.states, self.action, bn=False)
-                    self.action_gradients = tf.gradients(
-                        self.value_outputs, self.action)[0]
+                self.action_outputs, self.actor_params = self._build_actor(
+                    self.states, scope='actor_net', bn=True)
+                self.value_outputs, self.critic_params = self._build_critic(
+                    self.states, self.action, scope='critic_net', bn=False)
+                self.action_gradients = tf.gradients(
+                    self.value_outputs, self.action)[0]
 
             # estimate target_q for update critic
             with tf.name_scope('estimate_target_q'):
                 self.next_states = tf.placeholder(
                     tf.float32, [None, self.state_dim], name='next_states')
-                self.mask = tf.placeholder(
-                    tf.float32, [None, ], name='mask')
-                self.rewards = tf.placeholder(
-                    tf.float32, [None, ], name='rewards')
+                self.mask = tf.placeholder(tf.float32, [None], name='mask')
+                self.rewards = tf.placeholder(tf.float32, [None], name='rewards')
 
-                with tf.variable_scope('target_actor_network'):
-                    self.target_actor_outputs, self.target_actor_params = \
-                        self._build_actor(self.next_states, bn=True)
-                with tf.variable_scope('target_critic_network'):
-                    self.target_value_outputs, self.target_critic_params = \
-                        self._build_critic(self.next_states,
-                                           self.target_actor_outputs,
-                                           bn=False)
+                # target actor network
+                self.t_action_outputs, self.t_actor_params = self._build_actor(
+                    self.next_states, scope='t_actor_net', bn=True,
+                    trainable=False)
+                # target critic network
+                self.t_value_outputs, self.t_critic_params = self._build_critic(
+                    self.next_states, self.t_action_outputs, bn=False,
+                    scope='t_critic_net', trainable=False)
 
                 self.target_q = self.rewards + self.gamma * \
-                    (self.target_value_outputs[:, 0] * self.mask)
+                    (self.t_value_outputs[:, 0] * self.mask)
 
             with tf.name_scope('compute_gradients'):
-                # optimizer
-                self.actor_optimizer = tf.train.AdamOptimizer(
-                    self.actor_lr)
-                self.critic_optimizer = tf.train.AdamOptimizer(
-                    self.critic_lr)
+                self.actor_opt = tf.train.AdamOptimizer(self.actor_lr)
+                self.critic_opt = tf.train.AdamOptimizer(self.critic_lr)
+
                 # critic gradients
                 td_error = self.target_q - self.value_outputs[:, 0]
                 critic_mse = tf.reduce_mean(tf.square(td_error))
@@ -99,20 +93,19 @@ class DDPG(object):
                     [tf.nn.l2_loss(v) for v in self.critic_params])
                 critic_loss = critic_mse + self.reg_param * critic_reg
                 self.critic_gradients = \
-                    self.critic_optimizer.compute_gradients(
+                    self.critic_opt.compute_gradients(
                         critic_loss, self.critic_params)
                 # actor gradients
                 self.q_action_grads = tf.placeholder(
-                    tf.float32, [None, self.action_dim],
-                    name='q_action_grads')
+                    tf.float32, [None, self.action_dim], name='q_action_grads')
                 actor_gradients = tf.gradients(
                     self.action_outputs, self.actor_params,
                     -self.q_action_grads)
                 self.actor_gradients = zip(actor_gradients, self.actor_params)
                 # apply gradient to update model
-                self.train_actor = self.actor_optimizer.apply_gradients(
+                self.train_actor = self.actor_opt.apply_gradients(
                     self.actor_gradients)
-                self.train_critic = self.critic_optimizer.apply_gradients(
+                self.train_critic = self.critic_opt.apply_gradients(
                     self.critic_gradients)
 
             with tf.name_scope('update_target_networks'):
@@ -120,15 +113,15 @@ class DDPG(object):
                 target_networks_update = []
 
                 for v_source, v_target in zip(
-                        self.actor_params, self.target_actor_params):
+                        self.actor_params, self.t_actor_params):
                     update_op = v_target.assign_sub(
-                        self.target_update_rate * (v_target - v_source))
+                        0.001 * (v_target - v_source))
                     target_networks_update.append(update_op)
 
                 for v_source, v_target in zip(
-                        self.critic_params, self.target_critic_params):
+                        self.critic_params, self.t_critic_params):
                     update_op = v_target.assign_sub(
-                        self.target_update_rate * (v_target - v_source))
+                        0.01 * (v_target - v_source))
                     target_networks_update.append(update_op)
 
                 self.target_networks_update = tf.group(*target_networks_update)
@@ -143,13 +136,12 @@ class DDPG(object):
                     self.total_parameters += param_num
                 print('Total nums of parameters: ', self.total_parameters)
 
-    def sample_action(self, states, explore):
-        # is_training suppose to be False when sampling action!!!
-        action = self.sess.run(self.action_outputs, {
-            self.states: states,
-            self.is_training: False
-        })
-        ou_noise = self.ou.noise() if explore else 0
+    def sample_action(self, states, noise):
+        # is_training suppose to be False when sampling action.
+        action = self.sess.run(
+            self.action_outputs,
+            feed_dict={self.states: states, self.is_training: False})
+        ou_noise = self.ou.noise() if noise else 0
 
         return action + ou_noise
 
@@ -193,77 +185,94 @@ class DDPG(object):
         # update target network
         self.sess.run(self.target_networks_update)
 
-    def _build_actor(self, states, bn=False):
+    def _build_actor(self, states, scope, bn=False, trainable=True):
         h1_dim = 400
         h2_dim = 300
         init = tf.contrib.layers.variance_scaling_initializer(
             factor=1.0, mode='FAN_IN', uniform=True)
-        if bn:
-            states = self.batch_norm(
-                states, self.is_training, tf.identity, scope='actor_bn_states')
 
-        w1 = tf.get_variable(
-            'w1', [self.state_dim, h1_dim], initializer=init)
-        b1 = tf.get_variable('b1', [h1_dim], initializer=init)
-        h1 = tf.matmul(states, w1) + b1
-        if bn:
-            h1 = self.batch_norm(
-                h1, self.is_training, tf.nn.relu, scope='actor_bn_h1')
+        with tf.variable_scope(scope):
+            if bn:
+                states = self.batch_norm(
+                    states, self.is_training, tf.identity,
+                    scope='actor_bn_states', trainable=trainable)
+            h1 = tcl.fully_connected(
+                states, h1_dim, activation_fn=None, weights_initializer=init,
+                biases_initializer=init, trainable=trainable, scope='actor_h1')
 
-        w2 = tf.get_variable(
-            'w2', [h1_dim, h2_dim], initializer=init)
-        b2 = tf.get_variable('b2', [h2_dim], initializer=init)
-        h2 = tf.matmul(h1, w2) + b2
-        if bn:
-            h2 = self.batch_norm(
-                h2, self.is_training, tf.nn.relu, scope='actor_bn_h2')
+            if bn:
+                h1 = self.batch_norm(
+                    h1, self.is_training, tf.nn.relu, scope='actor_bn_h1',
+                    trainable=trainable)
+            else:
+                h1 = tf.nn.relu(h1)
 
-        # use tanh to bound the action
-        w3 = tf.get_variable(
-            'w3', [h2_dim, self.action_dim],
-            initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
-        b3 = tf.get_variable(
-            'b3', [self.action_dim],
-            initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
-        a = tf.nn.tanh(tf.matmul(h2, w3) + b3)
+            h2 = tcl.fully_connected(
+                h1, h2_dim, activation_fn=None, weights_initializer=init,
+                biases_initializer=init, trainable=trainable, scope='actor_h2')
+            if bn:
+                h2 = self.batch_norm(
+                    h2, self.is_training, tf.nn.relu, scope='actor_bn_h2',
+                    trainable=trainable)
+            else:
+                h2 = tf.nn.relu(h2)
 
-        return a, [w1, b1, w2, b2, w3, b3]
+            # use tanh to bound the action
+            a = tcl.fully_connected(
+                h2, self.action_dim, activation_fn=tf.nn.tanh,
+                weights_initializer=tf.random_uniform_initializer(-3e-3, 3e-3),
+                biases_initializer=tf.random_uniform_initializer(-3e-4, 3e-4),
+                trainable=trainable, scope='actor_out')
 
-    def _build_critic(self, states, action, bn=False):
+        params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope)
+
+        return a, params
+
+    def _build_critic(self, states, action, scope, bn=False, trainable=True):
         h1_dim = 400
         h2_dim = 300
         init = tf.contrib.layers.variance_scaling_initializer(
             factor=1.0, mode='FAN_IN', uniform=True)
-        if bn:
-            states = self.batch_norm(
-                states, self.is_training, tf.identity, scope='critic_bn_state')
+        with tf.variable_scope(scope):
+            if bn:
+                states = self.batch_norm(
+                    states, self.is_training, tf.identity,
+                    scope='critic_bn_state', trainable=trainable)
+            h1 = tcl.fully_connected(
+                states, h1_dim, activation_fn=None, weights_initializer=init,
+                biases_initializer=init, trainable=trainable, scope='critic_h1')
+            if bn:
+                h1 = self.batch_norm(
+                    h1, self.is_training, tf.nn.relu, scope='critic_bn_h1',
+                    trainable=trainable)
+            else:
+                h1 = tf.nn.relu(h1)
 
-        w1 = tf.get_variable(
-            'w1', [self.state_dim, h1_dim], initializer=init)
-        b1 = tf.get_variable('b1', [h1_dim], initializer=init)
-        h1 = tf.matmul(states, w1) + b1
-        if bn:
-            h1 = self.batch_norm(
-                h1, self.is_training, tf.nn.relu, scope='critic_bn_h1')
+            # skip action from the first layer
+            h1 = tf.concat([h1, action], 1)
 
-        # skip action from the first layer
-        h1_concat = tf.concat([h1, action], 1)
+            h2 = tcl.fully_connected(
+                h1, h2_dim, activation_fn=None, weights_initializer=init,
+                biases_initializer=init, trainable=trainable,
+                scope='critic_h2')
 
-        w2 = tf.get_variable(
-            'w2', [h1_dim + self.action_dim, h2_dim], initializer=init)
-        b2 = tf.get_variable('b2', [h2_dim], initializer=init)
-        h2 = tf.nn.relu(tf.matmul(h1_concat, w2) + b2)
+            if bn:
+                h2 = self.batch_norm(
+                    h2, self.is_training, tf.nn.relu, scope='critic_bn_h2',
+                    trainable=trainable)
+            else:
+                h2 = tf.nn.relu(h2)
 
-        w3 = tf.get_variable(
-            'w3', [h2_dim, 1],
-            initializer=tf.random_uniform_initializer(-3e-3, 3e-3))
-        b3 = tf.get_variable(
-            'b3', [1], initializer=tf.random_uniform_initializer(-3e-4, 3e-4))
-        q = tf.matmul(h2, w3) + b3
+            q = tcl.fully_connected(
+                h2, 1, activation_fn=None,
+                weights_initializer=tf.random_uniform_initializer(-3e-3, 3e-3),
+                biases_initializer=tf.random_uniform_initializer(-3e-4, 3e-4),
+                trainable=trainable, scope='critic_out')
 
-        return q, [w1, b1, w2, b2, w3, b3]
+        params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope)
+        return q, params
 
-    def batch_norm(self, x, is_training, activation_fn, scope):
+    def batch_norm(self, x, is_training, activation_fn, scope, trainable=True):
         # switch the 'is_training' flag and 'reuse' flag
         return tf.cond(
             is_training,
@@ -277,7 +286,8 @@ class DDPG(object):
                 reuse=None,
                 scope=scope,
                 decay=0.9,
-                epsilon=1e-5),
+                epsilon=1e-5,
+                trainable=trainable),
             lambda: tf.contrib.layers.batch_norm(
                 x,
                 activation_fn=activation_fn,
@@ -288,4 +298,5 @@ class DDPG(object):
                 reuse=True,  # to be able to reuse scope must be given
                 scope=scope,
                 decay=0.9,
-                epsilon=1e-5))
+                epsilon=1e-5,
+                trainable=trainable))
