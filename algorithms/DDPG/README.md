@@ -10,7 +10,7 @@ We use DDPG to solve a continuous control task Walker2d.
 ## Walker2d
 Walker2d is a continuous control task base on [Mujoco](http://www.mujoco.org/). The goal is to make a two-dimensional bipedal robot walk forward as fast as possible.  
 
-<img src="https://github.com/borgwang/reinforce_py/raw/master/images/walker2d.png" width = "200" height = "256" alt="walker2d" align=center />   
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/walker2d.png" width = "256" height = "256" alt="walker2d" align=center />   
 
 
 ## Requirements  
@@ -24,5 +24,5 @@ Walker2d is a continuous control task base on [Mujoco](http://www.mujoco.org/). 
 <img src="https://github.com/borgwang/reinforce_py/raw/master/images/walker2d.gif" width = "300" height = "300" alt="walker2d" align=center />   
 Results after training for 1.5M steps
 
-<img src="https://github.com/borgwang/reinforce_py/raw/master/images/ddpg.png" width = "320" height = "240" alt="ddpg" align=center />
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/ddpg.png" width = "600" height = "400" alt="ddpg" align=center />
 Training rewards (smoothed)
