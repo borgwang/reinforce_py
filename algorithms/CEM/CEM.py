@@ -7,7 +7,7 @@ import gym
 from gym.spaces import Discrete, Box
 
 
-# poicies
+# policies
 class DiscreteAction(object):
 
     def __init__(self, theta, ob_space, ac_space):
