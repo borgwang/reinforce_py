@@ -15,3 +15,12 @@ Related papers:
 
 ### Run
       python3 train_PPO.py  # -h to show avaliavle arguments
+
+### Results
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/ppo_score.png" width = "600" height = "440" alt="ppo-score" align=center />
+
+Smoothed rewards in 1M steps
+
+<img src="https://github.com/borgwang/reinforce_py/raw/master/images/ppo_losses.png" width = "600" height = "440" alt="ppo-lossed" align=center />
+
+Policy loss and value function loss during training.
