@@ -1,26 +1,23 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 import random
 
-from utils import draw_grid, draw_episode_steps
+from utils import draw_episode_steps
+from utils import draw_grid
 
 
 class TDAgent(object):
 
-    def __init__(self, env, epsilon, gamma, alpha=0.05, lamda=0):
+    def __init__(self, env, epsilon, gamma, alpha=0.1):
         self.env = env
         self.gamma = gamma
         self.alpha = alpha
         self.epsilon = epsilon  # explore & exploit
         self.init_episilon = epsilon
-        self.lamda = lamda
+
+        self.P = np.zeros((self.env.num_s, self.env.num_a))
 
         self.V = np.zeros(self.env.num_s)
-        self.P = np.zeros((self.env.num_s, self.env.num_a))
         self.Q = np.zeros((self.env.num_s, self.env.num_a))
-        self.Z = np.zeros((self.env.num_s, self.env.num_a))
 
         self.step_set = []  # store steps of each episode
         self.avg_step_set = []  # store average steps of each 100 episodes
@@ -48,11 +45,11 @@ class TDAgent(object):
         draw_grid(self.env, self, p=True, v=True, r=True)
 
     def control(self, method):
-        assert method == 'qlearn' or method == 'sarsa'
+        assert method in ("qlearn", "sarsa")
 
-        if method == 'qlearn':
+        if method == "qlearn":
             agent = Qlearn(self.env, self.epsilon, self.gamma)
-        elif method == 'sarsa':
+        else:
             agent = SARSA(self.env, self.epsilon, self.gamma)
 
         while agent.episode < self.max_episodes:
@@ -86,6 +83,7 @@ class TDAgent(object):
 
 
 class SARSA(TDAgent):
+
     def __init__(self, env, epsilon, gamma):
         super(SARSA, self).__init__(env, epsilon, gamma)
         self.reset_episode()
@@ -99,17 +97,12 @@ class SARSA(TDAgent):
 
     def learn(self, exp):
         s, a, r, n_s, n_a = exp
+
         if self.env.is_terminal(s):
             target = r
         else:
             target = r + self.gamma * self.Q[n_s][n_a]
-        error = target - self.Q[s][a]
-
-        self.Z[s][a] += 1.0
-        for _s in range(self.env.num_s):
-            for _a in range(self.env.num_a):
-                self.Q[_s][_a] += self.alpha * error * self.Z[_s][_a]
-                self.Z[_s][_a] *= self.lamda * self.gamma
+        self.Q[s][a] += self.alpha * (target - self.Q[s][a])
 
         # update policy
         self.update_policy()
@@ -139,6 +132,7 @@ class SARSA(TDAgent):
 
 
 class Qlearn(TDAgent):
+
     def __init__(self, env, epsilon, gamma):
         super(Qlearn, self).__init__(env, epsilon, gamma)
         self.reset_episode()
