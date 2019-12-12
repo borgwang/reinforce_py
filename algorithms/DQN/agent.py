@@ -1,19 +1,14 @@
-from __future__ import print_function
-from __future__ import division
-
-import tensorflow as tf
-import numpy as np
-import random
 from collections import deque
+import random
+
+import numpy as np
+import tensorflow as tf
 
 
-class DQN(object):
+class DQN:
 
     def __init__(self, env, args):
-        # Init replay buffer
-        self.replay_buffer = deque(maxlen=args.buffer_size)
-
-        # Init parameters
+        # init parameters
         self.global_step = 0
         self.epsilon = args.init_epsilon
         self.state_dim = env.observation_space.shape[0]
@@ -26,22 +21,25 @@ class DQN(object):
         self.double_q = args.double_q
         self.target_network_update_interval = args.target_network_update
 
+        # init replay buffer
+        self.replay_buffer = deque(maxlen=args.buffer_size)
+
     def network(self, input_state):
         hidden_unit = 100
-        w1 = tf.Variable(tf.div(tf.random_normal(
+        w1 = tf.Variable(tf.math.divide(tf.random_normal(
             [self.state_dim, hidden_unit]), np.sqrt(self.state_dim)))
         b1 = tf.Variable(tf.constant(0.0, shape=[hidden_unit]))
         hidden = tf.nn.relu(tf.matmul(input_state, w1) + b1)
 
-        w2 = tf.Variable(tf.div(tf.random_normal(
+        w2 = tf.Variable(tf.math.divide(tf.random_normal(
             [hidden_unit, self.action_dim]), np.sqrt(hidden_unit)))
         b2 = tf.Variable(tf.constant(0.0, shape=[self.action_dim]))
         output_Q = tf.matmul(hidden, w2) + b2
-
         return output_Q
 
-    def construct_model(self, gpu):
-        if gpu == -1:  # use CPU
+    @staticmethod
+    def get_session(device):
+        if device == -1:  # use CPU
             device = '/cpu:0'
             sess_config = tf.ConfigProto()
         else:  # use GPU
@@ -50,8 +48,12 @@ class DQN(object):
                 log_device_placement=True,
                 allow_soft_placement=True)
             sess_config.gpu_options.allow_growth = True
+        sess = tf.Session(config=sess_config)
+        return sess, device
 
-        self.sess = tf.Session(config=sess_config)
+    def construct_model(self, gpu):
+        self.sess, device = self.get_session(gpu)
+
         with tf.device(device):
             with tf.name_scope('input_state'):
                 self.input_state = tf.placeholder(
@@ -72,7 +74,7 @@ class DQN(object):
                 optimizer = tf.train.RMSPropOptimizer(self.learning_rate)
                 self.train_op = optimizer.minimize(self.loss)
 
-            # Target network
+            # target network
             with tf.name_scope('target_network'):
                 self.target_output_Q = self.network(self.input_state)
 
@@ -93,7 +95,7 @@ class DQN(object):
                 self.update_target_network = tf.group(
                     *self.update_target_network)
 
-    def sample_action(self, state, policy):
+    def sample_action(self, state, policy="greedy"):
         self.global_step += 1
         # Q_value of all actions
         output_Q = self.sess.run(
@@ -112,48 +114,42 @@ class DQN(object):
         onehot_action = np.zeros(self.action_dim)
         onehot_action[action] = 1
 
-        # Store experience in deque
+        # store experience in deque
         self.replay_buffer.append(
             np.array([state, onehot_action, reward, next_state, done]))
+
         if len(self.replay_buffer) > self.batch_size:
-            self.update_model()
+            # update target network if needed
+            if self.global_step % self.target_network_update_interval == 0:
+                self.sess.run(self.update_target_network)
 
-    def update_model(self):
-        # Update target network
-        if self.global_step % self.target_network_update_interval == 0:
-            self.sess.run(self.update_target_network)
-        # Sample experience
-        minibatch = random.sample(self.replay_buffer, self.batch_size)
+            # sample experience
+            minibatch = random.sample(self.replay_buffer, self.batch_size)
 
-        # Transpose minibatch
-        s_batch, a_batch, r_batch, next_s_batch, done_batch = \
-            np.array(minibatch).T.tolist()
+            # transpose minibatch
+            s_batch, a_batch, r_batch, next_s_batch, done_batch = np.array(minibatch).T
+            s_batch, a_batch = np.stack(s_batch), np.stack(a_batch)
+            next_s_batch = np.stack(next_s_batch)
 
-        next_s_all_action_Q = self.sess.run(
-            self.target_output_Q, {self.input_state: next_s_batch})
-        next_s_Q_batch = np.max(next_s_all_action_Q, 1)
+            # use target q network to get Q of all 
+            next_s_all_action_Q = self.sess.run(
+                self.target_output_Q, {self.input_state: next_s_batch})
+            next_s_Q_batch = np.max(next_s_all_action_Q, 1)
 
-        if self.double_q:
-            # use sourse network to selcete best action a*
-            next_s_action_batch = np.argmax(self.sess.run(
-                self.output_Q, {self.input_state: next_s_batch}), 1)
-            # then use target network to compute Q(s', a*)
-            next_s_Q_batch = next_s_all_action_Q[np.arange(self.batch_size),
-                                                 next_s_action_batch]
+            if self.double_q:
+                # use sourse network to selcete best action a*
+                next_s_action_batch = np.argmax(self.sess.run(
+                    self.output_Q, {self.input_state: next_s_batch}), 1)
+                # then use target network to compute Q(s', a*)
+                next_s_Q_batch = next_s_all_action_Q[np.arange(self.batch_size),
+                                                     next_s_action_batch]
 
-        # Calculate target_Q_batch
-        target_Q_batch = []
-        for i in range(self.batch_size):
-            done_state = done_batch[i]
-            if done_state:
-                target_Q_batch.append(r_batch[i])
-            else:
-                target_Q_batch.append(
-                    r_batch[i] + self.gamma * next_s_Q_batch[i])
+            # calculate target_Q_batch
+            mask = ~done_batch.astype(np.bool)
+            target_Q_batch = r_batch + self.gamma * mask * next_s_Q_batch
 
-        # Train the network
-        self.sess.run(self.train_op, {
-            self.target_Q: target_Q_batch,
-            self.input_action: a_batch,
-            self.input_state: s_batch
-        })
+            # run actual training
+            self.sess.run(self.train_op, feed_dict={
+                self.target_Q: target_Q_batch,
+                self.input_action: a_batch,
+                self.input_state: s_batch})

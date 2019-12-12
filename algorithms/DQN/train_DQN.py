@@ -1,19 +1,18 @@
-from __future__ import print_function
-from __future__ import division
-
-import os
 import argparse
+import os
+
 import gym
-import tensorflow as tf
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
 
 from agent import DQN
 
 
 def main(args):
     set_random_seed(args.seed)
-    env = gym.make('CartPole-v0')
+
+    env = gym.make("CartPole-v0")
     agent = DQN(env, args)
     agent.construct_model(args.gpu)
 
@@ -34,16 +33,16 @@ def main(args):
     for ep in range(args.max_ep):
         state = env.reset()
         ep_rewards = 0
-        for step in range(env.spec.timestep_limit):
+        for step in range(env.spec.max_episode_steps):
             # pick action
             action = agent.sample_action(state, policy='egreedy')
-            # Execution action.
+            # execution action.
             next_state, reward, done, debug = env.step(action)
             train_steps += 1
             ep_rewards += reward
             # modified reward to speed up learning
             reward = 0.1 if not done else -1
-            # Learn and Update net parameters
+            # learn and Update net parameters
             agent.learn(state, action, reward, next_state, done)
 
             state = next_state
@@ -55,16 +54,17 @@ def main(args):
         else:
             rewards_history.append(
                 rewards_history[-1] * 0.9 + ep_rewards * 0.1)
-        # Decay epsilon
+
+        # decay epsilon
         if agent.epsilon > args.final_epsilon:
             agent.epsilon -= (args.init_epsilon - args.final_epsilon) / args.max_ep
 
-        # Evaluate during training
+        # evaluate during training
         if ep % args.log_every == args.log_every-1:
             total_reward = 0
             for i in range(args.test_ep):
                 state = env.reset()
-                for j in range(env.spec.timestep_limit):
+                for j in range(env.spec.max_episode_steps):
                     action = agent.sample_action(state, policy='greedy')
                     state, reward, done, _ = env.step(action)
                     total_reward += reward
@@ -83,14 +83,18 @@ def main(args):
                 saver.save(agent.sess, save_name)
                 print('Model saved %s' % save_name)
 
-    # plot training rewards
     plt.plot(steps_history, rewards_history)
     plt.xlabel('steps')
     plt.ylabel('running avg rewards')
     plt.show()
 
 
-def args_parse():
+def set_random_seed(seed):
+    np.random.seed(seed)
+    tf.set_random_seed(seed)
+
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--model_path', default=None,
@@ -127,13 +131,4 @@ def args_parse():
     parser.add_argument(
         '--target_network_update', type=int, default=1000,
         help='update frequency of target network.')
-    return parser.parse_args()
-
-
-def set_random_seed(seed):
-    np.random.seed(seed)
-    tf.set_random_seed(seed)
-
-
-if __name__ == '__main__':
-    main(args_parse())
+    main(parser.parse_args())
