@@ -1,11 +1,8 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 import tensorflow as tf
 
 
-class REINFORCE(object):
+class REINFORCE:
 
     def __init__(self, input_dim, hidden_units, action_dim):
         self.input_dim = input_dim
@@ -17,17 +14,24 @@ class REINFORCE(object):
         self.state_buffer = []
         self.reward_buffer = []
         self.action_buffer = []
-
-    def construct_model(self, gpu):
-        if gpu == -1:  # use CPU
+        
+    @staticmethod
+    def get_session(device):
+        if device == -1:  # use CPU
             device = '/cpu:0'
-            sess_config = tf.ConfigProto(log_device_placement=True)
+            sess_config = tf.ConfigProto()
         else:  # use GPU
             device = '/gpu:' + str(gpu)
             sess_config = tf.ConfigProto(
-                log_device_placement=True, allow_soft_placement=True)
+                log_device_placement=True,
+                allow_soft_placement=True)
+            sess_config.gpu_options.allow_growth = True
+        sess = tf.Session(config=sess_config)
+        return sess, device
 
-        self.sess = tf.Session(config=sess_config)
+    def construct_model(self, gpu):
+        self.sess, device = self.get_session(gpu)
+
         with tf.device(device):
             # construct network
             self.input_state = tf.placeholder(
