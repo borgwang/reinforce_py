@@ -92,8 +92,7 @@ class ActorCritic:
 
         logp = self.sess.run(self.logp, {self.input_state: state})[0]
         prob = softmax(logp) - 1e-5
-        action = np.argmax(np.random.multinomial(1, prob))
-        return action
+        return np.argmax(np.random.multinomial(1, prob))
 
     def update_model(self):
         state_buffer = np.array(self.state_buffer)

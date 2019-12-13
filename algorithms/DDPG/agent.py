@@ -54,12 +54,12 @@ class DDPG:
                     tf.float32, [None, self.action_dim], name='action')
                 self.is_training = tf.placeholder(tf.bool, name='is_training')
 
-                self.action_outputs, self.actor_params = self._build_actor(
+                self.action_outputs, actor_params = self._build_actor(
                     self.states, scope='actor_net', bn=True)
-                self.value_outputs, self.critic_params = self._build_critic(
+                value_outputs, critic_params = self._build_critic(
                     self.states, self.action, scope='critic_net', bn=False)
                 self.action_gradients = tf.gradients(
-                    self.value_outputs, self.action)[0]
+                    value_outputs, self.action)[0]
 
             # estimate target_q for update critic
             with tf.name_scope('estimate_target_q'):
@@ -69,55 +69,50 @@ class DDPG:
                 self.rewards = tf.placeholder(tf.float32, [None], name='rewards')
 
                 # target actor network
-                self.t_action_outputs, self.t_actor_params = self._build_actor(
+                t_action_outputs, t_actor_params = self._build_actor(
                     self.next_states, scope='t_actor_net', bn=True,
                     trainable=False)
                 # target critic network
-                self.t_value_outputs, self.t_critic_params = self._build_critic(
-                    self.next_states, self.t_action_outputs, bn=False,
+                t_value_outputs, t_critic_params = self._build_critic(
+                    self.next_states, t_action_outputs, bn=False,
                     scope='t_critic_net', trainable=False)
 
-                self.target_q = self.rewards + self.gamma * \
-                    (self.t_value_outputs[:, 0] * self.mask)
+                target_q = self.rewards + self.gamma * \
+                    (t_value_outputs[:, 0] * self.mask)
 
             with tf.name_scope('compute_gradients'):
-                self.actor_opt = tf.train.AdamOptimizer(self.actor_lr)
-                self.critic_opt = tf.train.AdamOptimizer(self.critic_lr)
+                actor_opt = tf.train.AdamOptimizer(self.actor_lr)
+                critic_opt = tf.train.AdamOptimizer(self.critic_lr)
 
                 # critic gradients
-                td_error = self.target_q - self.value_outputs[:, 0]
+                td_error = target_q - value_outputs[:, 0]
                 critic_mse = tf.reduce_mean(tf.square(td_error))
                 critic_reg = tf.reduce_sum(
-                    [tf.nn.l2_loss(v) for v in self.critic_params])
+                    [tf.nn.l2_loss(v) for v in critic_params])
                 critic_loss = critic_mse + self.reg_param * critic_reg
-                self.critic_gradients = \
-                    self.critic_opt.compute_gradients(
-                        critic_loss, self.critic_params)
+                critic_gradients = critic_opt.compute_gradients(
+                    critic_loss, critic_params)
                 # actor gradients
                 self.q_action_grads = tf.placeholder(
                     tf.float32, [None, self.action_dim], name='q_action_grads')
                 actor_gradients = tf.gradients(
-                    self.action_outputs, self.actor_params,
-                    -self.q_action_grads)
-                self.actor_gradients = zip(actor_gradients, self.actor_params)
+                    self.action_outputs, actor_params, -self.q_action_grads)
+                actor_gradients = zip(actor_gradients, actor_params)
                 # apply gradient to update model
-                self.train_actor = self.actor_opt.apply_gradients(
-                    self.actor_gradients)
-                self.train_critic = self.critic_opt.apply_gradients(
-                    self.critic_gradients)
+                self.train_actor = actor_opt.apply_gradients(actor_gradients)
+                self.train_critic = critic_opt.apply_gradients(
+                    critic_gradients)
 
             with tf.name_scope('update_target_networks'):
-                # batch norm paramerters should not be included when updating!
+                # batch norm parameters should not be included when updating!
                 target_networks_update = []
 
-                for v_source, v_target in zip(
-                        self.actor_params, self.t_actor_params):
+                for v_source, v_target in zip(actor_params, t_actor_params):
                     update_op = v_target.assign_sub(
                         0.001 * (v_target - v_source))
                     target_networks_update.append(update_op)
 
-                for v_source, v_target in zip(
-                        self.critic_params, self.t_critic_params):
+                for v_source, v_target in zip(critic_params, t_critic_params):
                     update_op = v_target.assign_sub(
                         0.01 * (v_target - v_source))
                     target_networks_update.append(update_op)
