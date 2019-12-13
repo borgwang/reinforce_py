@@ -1,8 +1,5 @@
-from __future__ import print_function
-from __future__ import division
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def draw_grid(env, agent, p=True, v=False, r=False):
@@ -29,9 +26,9 @@ def draw_grid(env, agent, p=True, v=False, r=False):
             if i % env.env_w == 0:
                 print('\n')
             if env.W[i] > 0:
-                print('%1s' % (cliff), end=' ')
+                print('%1s' % cliff, end=' ')
             else:
-                print('%1s' % (sign[r]), end=' ')
+                print('%1s' % sign[r], end=' ')
         print('\n')
     if p:
         print('Trained policy:', end=' ')
@@ -39,11 +36,11 @@ def draw_grid(env, agent, p=True, v=False, r=False):
             if i % env.env_w == 0:
                 print('\n')
             if env.W[i] == 1:
-                print('%s' % (cliff), end=' ')
+                print('%s' % cliff, end=' ')
             elif env.R[i] == 1:
-                print('%s' % (u'\u272A'), end=' ')
+                print('%s' % u'\u272A', end=' ')
             else:
-                print('%s' % (arrows[a]), end=' ')
+                print('%s' % arrows[a], end=' ')
         print('\n')
     if v:
         print('Value function for each state:', end=' ')
@@ -51,11 +48,11 @@ def draw_grid(env, agent, p=True, v=False, r=False):
             if i % env.env_w == 0:
                 print('\n')
             if env.W[i] == 1:
-                print(' %-2s ' % (cliff), end=' ')
+                print(' %-2s ' % cliff, end=' ')
             elif env.R[i] == 1:
-                print('[%.1f]' % (v), end=' ')
+                print('[%.1f]' % v, end=' ')
             else:
-                print('%4.1f' % (v), end=' ')
+                print('%4.1f' % v, end=' ')
         print('\n')
 
 

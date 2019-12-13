@@ -2,7 +2,8 @@ import argparse
 import os
 
 import gym
-import numpy as np import tensorflow as tf
+import numpy as np 
+import tensorflow as tf
 
 from agent import ActorCritic
 from utils import *
@@ -29,7 +30,7 @@ def main(args):
         # build a new model
         agent.sess.run(tf.global_variables_initializer())
         ep_base = 0
-        mean_rewards = None
+        mean_rewards = 0.0
 
     # load env
     env = gym.make('Pong-v0')
@@ -58,11 +59,7 @@ def main(args):
             if done:
                 break
 
-        if mean_rewards is None:
-            mean_rewards = total_rewards
-        else:
-            mean_rewards = 0.99 * mean_rewards + 0.01 * total_rewards
-
+        mean_rewards = 0.99 * mean_rewards + 0.01 * total_rewards
         rounds = (21 - np.abs(total_rewards)) + 21
         average_steps = (step + 1) / rounds
         print('Ep%s: %d rounds' % (ep_base + ep + 1, rounds))

@@ -1,9 +1,5 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 import gym
-
 from gym.spaces import Discrete, Box
 
 
@@ -86,7 +82,7 @@ params_mean = np.zeros(dim_params)
 params_std = np.ones(dim_params)
 
 for i in range(num_iter):
-    # sample patameter vectors (multi-variable gaussian distribution)
+    # sample parameter vectors (multi-variable gaussian distribution)
     sample_params = np.random.multivariate_normal(
                         params_mean, np.diag(params_std), size=batch_size)
     # evaluate sample policies

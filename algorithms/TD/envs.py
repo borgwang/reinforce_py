@@ -1,10 +1,7 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 
 
-class GridWorld(object):
+class GridWorld:
 
     def __init__(self):
         self.env_w = 10
@@ -54,7 +51,7 @@ class GridWorld(object):
 
     def next_state(self, s, a):
         # return next state in state s taking action a
-        # in this definitized environment it returns a certain state ns
+        # in this deterministic environment it returns a certain state ns
         ns = 0
         if a == 0:
             ns = s - self.env_w
@@ -70,4 +67,4 @@ class GridWorld(object):
         return True if s in self.terminal else False
 
     def reset(self):
-        return 0  # initi state
+        return 0  # init state

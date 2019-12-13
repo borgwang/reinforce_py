@@ -1,10 +1,8 @@
-from __future__ import print_function
-from __future__ import division
-
 import argparse
-import tensorflow as tf
-import numpy as np
+
 import gym
+import numpy as np
+import tensorflow as tf
 from gym import wrappers
 
 from agent import DDPG

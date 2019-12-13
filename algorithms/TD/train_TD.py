@@ -7,8 +7,7 @@ from envs import GridWorld
 def main(args):
     env = GridWorld()
 
-    agent = TDAgent(
-        env, epsilon=args.epsilon, gamma=args.discount, alpha=args.lr)
+    agent = TDAgent(env, epsilon=args.epsilon, gamma=args.discount, alpha=args.lr)
     agent.control(method=args.algorithm)
 
 

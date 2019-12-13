@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 
-class ActorCritic(object):
+class ActorCritic:
 
     def __init__(self, input_dim, hidden_units, action_dim):
         self.input_dim = input_dim
@@ -24,7 +24,7 @@ class ActorCritic(object):
             device = '/cpu:0'
             sess_config = tf.ConfigProto()
         else:  # use GPU
-            device = '/gpu:' + str(gpu)
+            device = '/gpu:' + str(device)
             sess_config = tf.ConfigProto(
                 log_device_placement=True,
                 allow_soft_placement=True)
@@ -167,7 +167,6 @@ class ActorCritic(object):
             np.sqrt(self.hidden_units)), name='w2')
         b2 = tf.Variable(tf.constant(0.0, shape=[self.action_dim]), name='b2')
         logp = tf.matmul(h1, w2) + b2
-
         return logp
 
     def critic_network(self, input_state):
@@ -181,5 +180,4 @@ class ActorCritic(object):
             [self.hidden_units, 1]), np.sqrt(self.hidden_units)), name='w2')
         b2 = tf.Variable(tf.constant(0.0, shape=[1]), name='b2')
         state_value = tf.matmul(h1, w2) + b2
-
         return state_value

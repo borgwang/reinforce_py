@@ -1,6 +1,3 @@
-import numpy as np
-import tensorflow as tf
-
 from net import Net
 from utils import *
 from vizdoom import *

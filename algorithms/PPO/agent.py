@@ -1,12 +1,12 @@
 import numpy as np
 import tensorflow as tf
 
-import utils as U
 from config import args, tf_config
 from distributions import make_pd_type
+import utils as U
 
 
-class Policy(object):
+class Policy:
 
     def __init__(self, ob_space, ac_space, batch, n_steps, reuse):
         ob_dim = (batch,) + ob_space.shape
@@ -39,7 +39,7 @@ class Policy(object):
             self.pi = pi
 
 
-class PPO(object):
+class PPO:
 
     def __init__(self, env):
         self.sess = tf.Session(config=tf_config)
@@ -130,8 +130,3 @@ class PPO(object):
              self.approxkl, self.clip_frac, self.train_op],
             feed_dict=feed_dict)[:-1]
 
-    def save(self, save_path):
-        pass
-
-    def load(self, load_path):
-        pass

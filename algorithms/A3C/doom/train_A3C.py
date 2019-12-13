@@ -45,11 +45,11 @@ def main(args):
             sess.run(tf.global_variables_initializer())
         print_net_params_number()
 
-        # Start work process for each worker in a seperate thread
+        # Start work process for each worker in a separated thread
         worker_threads = []
         for w in workers:
             run_fn = lambda: w.run(sess, coord, saver)
-            t = threading.Thread(target=(run_fn))
+            t = threading.Thread(target=run_fn)
             t.start()
             time.sleep(0.5)
             worker_threads.append(t)

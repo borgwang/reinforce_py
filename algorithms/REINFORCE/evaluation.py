@@ -1,11 +1,6 @@
-from __future__ import print_function
-from __future__ import division
-
 import argparse
-import gym
-import numpy as np
-import tensorflow as tf
 
+import gym
 from agent import REINFORCE
 from utils import *
 

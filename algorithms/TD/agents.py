@@ -12,7 +12,7 @@ class TDAgent(object):
         self.gamma = gamma
         self.alpha = alpha
         self.epsilon = epsilon  # explore & exploit
-        self.init_episilon = epsilon
+        self.init_epsilon = epsilon
 
         self.P = np.zeros((self.env.num_s, self.env.num_a))
 
@@ -30,6 +30,9 @@ class TDAgent(object):
             poss = self.env.allow_actions(s)
             for a in poss:
                 self.P[s][a] = 1.0 / len(poss)
+
+        self.curr_s = None
+        self.curr_a = None
 
     def predict(self, episode=1000):
         for e in range(episode):
@@ -55,7 +58,7 @@ class TDAgent(object):
         while agent.episode < self.max_episodes:
             agent.learn(agent.act())
 
-        # resutl display
+        # result display
         draw_grid(self.env, agent, p=True, v=True, r=True)
         # draw episode steps
         draw_episode_steps(agent.avg_step_set)
@@ -66,17 +69,17 @@ class TDAgent(object):
         # Q values of all allowed actions
         qs = self.Q[self.curr_s][poss]
         q_maxs = [q for q in qs if q == max(qs)]
-        # update probs
+        # update probabilities
         for i, a in enumerate(poss):
             self.P[self.curr_s][a] = \
                 1.0 / len(q_maxs) if qs[i] in q_maxs else 0.0
 
     def select_action(self, state, policy='egreedy'):
-        poss = self.env.allow_actions(state)  # possiable actions
+        poss = self.env.allow_actions(state)  # possible actions
         if policy == 'egreedy' and random.random() < self.epsilon:
             a = random.choice(poss)
         else:  # greedy action
-            pros = self.P[state][poss]  # probobilities for possiable actions
+            pros = self.P[state][poss]  # probabilities for possible actions
             best_a_idx = [i for i, p in enumerate(pros) if p == max(pros)]
             a = poss[random.choice(best_a_idx)]
         return a
@@ -112,7 +115,7 @@ class SARSA(TDAgent):
             print('episode %d step: %d epsilon: %f' %
                   (self.episode, self.step, self.epsilon))
             self.reset_episode()
-            self.epsilon -= self.init_episilon / 10000
+            self.epsilon -= self.init_epsilon / 10000
             # record per 100 episode
             if self.episode % 100 == 0:
                 self.avg_step_set.append(
@@ -160,7 +163,7 @@ class Qlearn(TDAgent):
             self.V = np.sum(self.Q, axis=1)
             print('episode %d step: %d' % (self.episode, self.step))
             self.reset_episode()
-            self.epsilon -= self.init_episilon / self.max_episodes
+            self.epsilon -= self.init_epsilon / self.max_episodes
             # record per 100 episode
             if self.episode % 100 == 0:
                 self.avg_step_set.append(

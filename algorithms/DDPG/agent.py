@@ -1,16 +1,14 @@
-from __future__ import print_function
-from __future__ import division
-
 import random
 from collections import deque
+
+import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
-import numpy as np
 
 from ou_noise import OUNoise
 
 
-class DDPG(object):
+class DDPG:
 
     def __init__(self, env, args):
         self.action_dim = env.action_space.shape[0]

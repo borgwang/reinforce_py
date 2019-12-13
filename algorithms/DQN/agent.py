@@ -1,5 +1,5 @@
-from collections import deque
 import random
+from collections import deque
 
 import numpy as np
 import tensorflow as tf
@@ -126,7 +126,7 @@ class DQN:
             # sample experience
             minibatch = random.sample(self.replay_buffer, self.batch_size)
 
-            # transpose minibatch
+            # transpose mini-batch
             s_batch, a_batch, r_batch, next_s_batch, done_batch = np.array(minibatch).T
             s_batch, a_batch = np.stack(s_batch), np.stack(a_batch)
             next_s_batch = np.stack(next_s_batch)
@@ -137,7 +137,7 @@ class DQN:
             next_s_Q_batch = np.max(next_s_all_action_Q, 1)
 
             if self.double_q:
-                # use sourse network to selcete best action a*
+                # use source network to select best action a*
                 next_s_action_batch = np.argmax(self.sess.run(
                     self.output_Q, {self.input_state: next_s_batch}), 1)
                 # then use target network to compute Q(s', a*)

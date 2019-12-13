@@ -1,5 +1,3 @@
-import numpy as np
-import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
 from utils import *
@@ -17,13 +15,13 @@ class Net:
                 shape=[None, self.s_dim], dtype=tf.float32)
             inputs = tf.reshape(self.inputs, [-1, 84, 84, 1])
 
-            self._contruct_network(inputs)
+            self._construct_network(inputs)
 
             if self.scope != 'global':
                 # gradients update only for workers
                 self._update_network(trainer)
 
-    def _contruct_network(self, inputs):
+    def _construct_network(self, inputs):
         # Actor network and critic network share all shallow layers
         conv1 = slim.conv2d(inputs=inputs,
                             num_outputs=16,

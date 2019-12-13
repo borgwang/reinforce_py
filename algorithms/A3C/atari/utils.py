@@ -1,10 +1,8 @@
-from __future__ import print_function
-from __future__ import division
-
-import tensorflow as tf
-import scipy.signal
-import numpy as np
 import time
+
+import numpy as np
+import scipy.signal
+import tensorflow as tf
 
 
 def reward_discount(x, gamma):
@@ -12,6 +10,7 @@ def reward_discount(x, gamma):
 
 
 def ortho_init(scale=1.0):
+
     def _ortho_init(shape, dtype, partition_info=None):
         # lasagne ortho init for tf
         shape = tuple(shape)
@@ -26,6 +25,7 @@ def ortho_init(scale=1.0):
         q = u if u.shape == flat_shape else v  # pick the one with the correct shape
         q = q.reshape(shape)
         return (scale * q[:shape[0], :shape[1]]).astype(np.float32)
+
     return _ortho_init
 
 

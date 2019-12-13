@@ -1,12 +1,7 @@
-from __future__ import print_function
-from __future__ import division
-
-import numpy as np
-import tensorflow as tf
-
-from utils import *
+from atari_env import A_DIM
+from atari_env import S_DIM
 from net import Net
-from atari_env import S_DIM, A_DIM
+from utils import *
 
 
 class Worker(object):
@@ -125,7 +120,6 @@ class Worker(object):
         '''
         Assign global networks parameters to local networks
         '''
-
         global_vars = tf.get_collection(
             tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
         local_vars = tf.get_collection(

@@ -1,12 +1,11 @@
-from __future__ import print_function
-from __future__ import division
-
-import tensorflow as tf
-import numpy as np
 import os
 import time
 
-from atari_env import make_env, A_DIM
+import numpy as np
+import tensorflow as tf
+
+from atari_env import A_DIM
+from atari_env import make_env
 
 
 class Evaluate(object):

@@ -1,12 +1,10 @@
-from __future__ import print_function
-from __future__ import division
-
-import os
 import argparse
-import tensorflow as tf
-import numpy as np
+import os
+
 import gym
 import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
 
 from agent import DDPG
 
@@ -78,7 +76,7 @@ def main(args):
             # logging
             print('\n')
             print('Episode: %d' % (ep + 1))
-            print('Gloabal steps: %d' % agent.global_steps)
+            print('Global steps: %d' % agent.global_steps)
             print('Mean reward: %.2f' % curr_avg_rewards)
             print('\n')
             if not best_avg_rewards or (curr_avg_rewards >= best_avg_rewards):
@@ -97,51 +95,51 @@ def main(args):
 
 
 def args_parse():
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            '--model_path', default=None,
-            help='Whether to use a saved model. (*None|model path)')
-        parser.add_argument(
-            '--save_path', default='./models/',
-            help='Path to save a model during training.')
-        parser.add_argument(
-            '--log_every', default=100,
-            help='Interval of logging and may be model saving')
-        parser.add_argument(
-            '--gpu', type=int, default=-1,
-            help='running on a specify gpu, -1 indicates using cpu')
-        parser.add_argument(
-            '--seed', default=31, type=int, help='random seed')
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--model_path', default=None,
+        help='Whether to use a saved model. (*None|model path)')
+    parser.add_argument(
+        '--save_path', default='./models/',
+        help='Path to save a model during training.')
+    parser.add_argument(
+        '--log_every', default=100,
+        help='Interval of logging and may be model saving')
+    parser.add_argument(
+        '--gpu', type=int, default=-1,
+        help='running on a specify gpu, -1 indicates using cpu')
+    parser.add_argument(
+        '--seed', default=31, type=int, help='random seed')
 
-        parser.add_argument(
-            '--max_ep', type=int, default=10000, help='Number of training episodes')
-        parser.add_argument(
-            '--test_ep', type=int, default=10, help='Number of test episodes')
-        parser.add_argument(
-            '--a_lr', type=float, default=1e-4, help='Actor learning rate')
-        parser.add_argument(
-            '--c_lr', type=float, default=1e-3, help='Critic learning rate')
-        parser.add_argument(
-            '--batch_size', type=int, default=64, help='Size of training batch')
-        parser.add_argument(
-            '--gamma', type=float, default=0.99, help='Discounted factor')
-        parser.add_argument(
-            '--target_update_rate', type=float, default=0.001,
-            help='soft target update rate')
-        parser.add_argument(
-            '--reg_param', type=float, default=0.01, help='l2 regularization')
-        parser.add_argument(
-            '--buffer_size', type=int, default=1000000, help='Size of memory buffer')
-        parser.add_argument(
-            '--replay_start_size', type=int, default=1000,
-            help='Number of steps before learning from replay memory')
-        parser.add_argument(
-            '--noise_theta', type=float, default=0.15,
-            help='Ornstein-Uhlenbeck noise parameters')
-        parser.add_argument(
-            '--noise_sigma', type=float, default=0.20,
-            help='Ornstein-Uhlenbeck noise parameters')
-        return parser.parse_args()
+    parser.add_argument(
+        '--max_ep', type=int, default=10000, help='Number of training episodes')
+    parser.add_argument(
+        '--test_ep', type=int, default=10, help='Number of test episodes')
+    parser.add_argument(
+        '--a_lr', type=float, default=1e-4, help='Actor learning rate')
+    parser.add_argument(
+        '--c_lr', type=float, default=1e-3, help='Critic learning rate')
+    parser.add_argument(
+        '--batch_size', type=int, default=64, help='Size of training batch')
+    parser.add_argument(
+        '--gamma', type=float, default=0.99, help='Discounted factor')
+    parser.add_argument(
+        '--target_update_rate', type=float, default=0.001,
+        help='soft target update rate')
+    parser.add_argument(
+        '--reg_param', type=float, default=0.01, help='l2 regularization')
+    parser.add_argument(
+        '--buffer_size', type=int, default=1000000, help='Size of memory buffer')
+    parser.add_argument(
+        '--replay_start_size', type=int, default=1000,
+        help='Number of steps before learning from replay memory')
+    parser.add_argument(
+        '--noise_theta', type=float, default=0.15,
+        help='Ornstein-Uhlenbeck noise parameters')
+    parser.add_argument(
+        '--noise_sigma', type=float, default=0.20,
+        help='Ornstein-Uhlenbeck noise parameters')
+    return parser.parse_args()
 
 
 def set_random_seed(seed):

@@ -16,7 +16,7 @@ def main(args):
     agent = DQN(env, args)
     agent.construct_model(args.gpu)
 
-    # load pretrained models or init new a model.
+    # load pre-trained models or init new a model.
     saver = tf.train.Saver(max_to_keep=1)
     if args.model_path is not None:
         saver.restore(agent.sess, args.model_path)
@@ -73,7 +73,7 @@ def main(args):
             current_mean_rewards = total_reward / args.test_ep
             print('Episode: %d Average Reward: %.2f' %
                   (ep + 1, current_mean_rewards))
-            # save model if current model outpeform the old one
+            # save model if current model outperform the old one
             if best_mean_rewards is None or (current_mean_rewards >= best_mean_rewards):
                 best_mean_rewards = current_mean_rewards
                 if not os.path.isdir(args.save_path):

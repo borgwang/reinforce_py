@@ -1,18 +1,18 @@
-from __future__ import print_function
-from __future__ import division
-
-import threading
-import os
 import argparse
-import time
-import tensorflow as tf
 import itertools
+import os
+import threading
+import time
 
-from atari_env import make_env, S_DIM, A_DIM
-from net import Net
-from worker import Worker
-from utils import print_params_nums
+import tensorflow as tf
+
+from atari_env import A_DIM
+from atari_env import S_DIM
+from atari_env import make_env
 from evaluate import Evaluate
+from net import Net
+from utils import print_params_nums
+from worker import Worker
 
 
 def main(args):
@@ -45,7 +45,7 @@ def main(args):
             print('Initializing a new model...\n')
             sess.run(tf.global_variables_initializer())
         print_params_nums()
-        # Start work process for each worker in a seperated thread
+        # Start work process for each worker in a separated thread
         worker_threads = []
         for worker in workers:
             t = threading.Thread(target=lambda: worker.run(sess, coord, saver))

@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 
 
@@ -23,13 +20,3 @@ class OUNoise:
         dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(len(x))
         self.state = x + dx
         return self.state
-
-# if __name__ == '__main__':
-#     ou = OUNoise(3)
-#     noises = []
-#     for i in range(10000):
-#         noises.append(ou.noise())
-#
-#     import matplotlib.pyplot as plt
-#     plt.plot(noises)
-#     plt.show()

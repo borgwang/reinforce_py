@@ -1,12 +1,10 @@
-from __future__ import print_function
-from __future__ import division
-
 import os
+
 import gym
 import numpy as np
 
-from skimage.transform import resize
 from skimage.color import rgb2gray
+from skimage.transform import resize
 
 
 class Atari(object):

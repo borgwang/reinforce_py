@@ -14,14 +14,14 @@ class REINFORCE:
         self.state_buffer = []
         self.reward_buffer = []
         self.action_buffer = []
-        
+
     @staticmethod
     def get_session(device):
         if device == -1:  # use CPU
             device = '/cpu:0'
             sess_config = tf.ConfigProto()
         else:  # use GPU
-            device = '/gpu:' + str(gpu)
+            device = '/gpu:' + str(device)
             sess_config = tf.ConfigProto(
                 log_device_placement=True,
                 allow_soft_placement=True)
