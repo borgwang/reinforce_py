@@ -72,6 +72,7 @@ class REINFORCE:
             self.train_op = self.optimizer.apply_gradients(self.gradient)
 
     def sample_action(self, state):
+
         def softmax(x):
             max_x = np.amax(x)
             e = np.exp(x - max_x)

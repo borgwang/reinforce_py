@@ -1,11 +1,9 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 import tensorflow as tf
 
 
 class ActorCritic(object):
+
     def __init__(self, input_dim, hidden_units, action_dim):
         self.input_dim = input_dim
         self.hidden_units = hidden_units
@@ -20,17 +18,22 @@ class ActorCritic(object):
 
         self.batch_size = 32
 
-    def construct_model(self, gpu):
-        if gpu == -1:  # use CPU
+    @staticmethod
+    def get_session(device):
+        if device == -1:  # use CPU
             device = '/cpu:0'
             sess_config = tf.ConfigProto()
         else:  # use GPU
             device = '/gpu:' + str(gpu)
             sess_config = tf.ConfigProto(
-                log_device_placement=True, allow_soft_placement=True)
+                log_device_placement=True,
+                allow_soft_placement=True)
             sess_config.gpu_options.allow_growth = True
+        sess = tf.Session(config=sess_config)
+        return sess, device
 
-        self.sess = tf.Session(config=sess_config)
+    def construct_model(self, gpu):
+        self.sess, device = self.get_session(gpu)
 
         with tf.device(device):
             with tf.name_scope('model_inputs'):
@@ -81,6 +84,7 @@ class ActorCritic(object):
                 self.train_op = self.optimizer.apply_gradients(self.gradients)
 
     def sample_action(self, state):
+
         def softmax(x):
             max_x = np.amax(x)
             e = np.exp(x - max_x)

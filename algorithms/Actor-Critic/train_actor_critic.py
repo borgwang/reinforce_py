@@ -1,8 +1,6 @@
-from __future__ import print_function
-from __future__ import division
-
-import os
 import argparse
+import os
+
 import gym
 import numpy as np
 import tensorflow as tf
@@ -39,7 +37,6 @@ def main(args):
 
     # training loop
     for ep in range(MAX_EPISODES):
-        # reset env
         step = 0
         total_rewards = 0
         state = preprocess(env.reset())
@@ -75,6 +72,7 @@ def main(args):
 
         # update model per episode
         agent.update_model()
+
         # model saving
         if ep > 0 and ep % args.save_every == 0:
             if not os.path.isdir(args.save_path):
@@ -83,7 +81,7 @@ def main(args):
             saver.save(agent.sess, args.save_path + save_name)
 
 
-def args_parse():
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--model_path', default=None,
@@ -96,8 +94,4 @@ def args_parse():
     parser.add_argument(
         '--gpu', default=-1,
         help='running on a specify gpu, -1 indicates using cpu')
-    return parser.parse_args()
-
-
-if __name__ == '__main__':
-    main(args_parse())
+    main(parser.parse_args())

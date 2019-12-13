@@ -85,3 +85,5 @@ ENV/
 # ignore saved models
 models/
 model/
+
+*.swp
