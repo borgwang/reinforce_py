@@ -38,17 +38,17 @@ class ActorCritic(object):
         with tf.device(device):
             with tf.name_scope('model_inputs'):
                 self.input_state = tf.placeholder(
-                        tf.float32, [None, self.input_dim], name='input_state')
+                    tf.float32, [None, self.input_dim], name='input_state')
             with tf.variable_scope('actor_network'):
                 self.logp = self.actor_network(self.input_state)
             with tf.variable_scope('critic_network'):
                 self.state_value = self.critic_network(self.input_state)
 
             # get network parameters
-            actor_parameters = tf.get_collection(
-                    tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor_network')
-            critic_parameters = tf.get_collection(
-                    tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic_network')
+            actor_params = tf.get_collection(
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope='actor_network')
+            critic_params = tf.get_collection(
+                tf.GraphKeys.TRAINABLE_VARIABLES, scope='critic_network')
 
             self.taken_action = tf.placeholder(tf.int32, [None, ])
             self.discounted_rewards = tf.placeholder(tf.float32, [None, 1])
@@ -62,15 +62,15 @@ class ActorCritic(object):
             self.advantage = (self.discounted_rewards - self.state_value)[:, 0]
             # actor gradient
             actor_gradients = tf.gradients(
-                self.actor_loss, actor_parameters, self.advantage)
-            self.actor_gradients = list(zip(actor_gradients, actor_parameters))
+                self.actor_loss, actor_params, self.advantage)
+            self.actor_gradients = list(zip(actor_gradients, actor_params))
 
             # critic loss
             self.critic_loss = tf.reduce_mean(
                 tf.square(self.discounted_rewards - self.state_value))
             # critic gradient
             self.critic_gradients = self.optimizer.compute_gradients(
-                self.critic_loss, critic_parameters)
+                self.critic_loss, critic_params)
             self.gradients = self.actor_gradients + self.critic_gradients
 
             # clip gradient
@@ -110,7 +110,8 @@ class ActorCritic(object):
             else:
                 end_index = ep_steps
             batch_index = shuffle_index[i:end_index]
-            # get batch from buffer
+
+            # get batch
             input_state = state_buffer[batch_index]
             taken_action = action_buffer[batch_index]
             discounted_rewards = discounted_rewards_buffer[batch_index]
@@ -119,10 +120,9 @@ class ActorCritic(object):
             self.sess.run(self.train_op, feed_dict={
                 self.input_state: input_state,
                 self.taken_action: taken_action,
-                self.discounted_rewards: discounted_rewards
-            })
+                self.discounted_rewards: discounted_rewards})
 
-        # cleanup job
+        # clean up job
         self.buffer_reset()
 
         self.ep_count += 1

@@ -1,15 +1,13 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 import tensorflow as tf
 
+from net import Net
 from utils import *
 from vizdoom import *
-from net import Net
 
 
 class Worker(object):
+
     def __init__(self, worker_id, env, global_ep, args):
         self.name = 'worker_' + str(worker_id)
         self.env = env
@@ -33,6 +31,7 @@ class Worker(object):
         print('Starting ' + self.name)
 
         with sess.as_default(), sess.graph.as_default():
+
             while not coord.should_stop():
                 sess.run(self.update_local_op)
                 rollout = []

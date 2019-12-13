@@ -1,17 +1,15 @@
-from __future__ import print_function
-from __future__ import division
-
-import threading
+import argparse
 import multiprocessing
 import os
-import argparse
-from time import sleep
+import threading
+import time
+
 import tensorflow as tf
 
 from env_doom import Doom
 from net import Net
-from worker import Worker
 from utils import print_net_params_number
+from worker import Worker
 
 
 def main(args):
@@ -19,8 +17,10 @@ def main(args):
         os.makedirs(args.save_path)
 
     tf.reset_default_graph()
+
     global_ep = tf.Variable(
         0, dtype=tf.int32, name='global_ep', trainable=False)
+    
     env = Doom(visiable=False)
     Net(env.state_dim, env.action_dim, 'global', None)
     num_workers = args.parallel
@@ -30,6 +30,7 @@ def main(args):
     for i in range(num_workers):
         w = Worker(i, Doom(), global_ep, args)
         workers.append(w)
+
     print('%d workers in total.\n' % num_workers)
     saver = tf.train.Saver(max_to_keep=3)
 
@@ -50,12 +51,15 @@ def main(args):
             run_fn = lambda: w.run(sess, coord, saver)
             t = threading.Thread(target=(run_fn))
             t.start()
-            sleep(0.5)
+            time.sleep(0.5)
             worker_threads.append(t)
         coord.join(worker_threads)
 
 
-def args_parse():
+if __name__ == '__main__':
+    # ignore warnings by tensorflow
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--model_path', default=None,
@@ -72,13 +76,4 @@ def args_parse():
     parser.add_argument(
         '--parallel', default=multiprocessing.cpu_count(),
         help='Number of parallel threads')
-    args = parser.parse_args()
-
-    return args
-
-
-if __name__ == '__main__':
-    # ignore warnings by tensorflow
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-    main(args_parse())
+    main(parser.parse_args())

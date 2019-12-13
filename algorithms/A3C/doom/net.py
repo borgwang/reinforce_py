@@ -1,6 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
@@ -8,7 +5,8 @@ import tensorflow.contrib.slim as slim
 from utils import *
 
 
-class Net(object):
+class Net:
+
     def __init__(self, s_dim, a_dim, scope, trainer):
         self.s_dim = s_dim
         self.a_dim = a_dim

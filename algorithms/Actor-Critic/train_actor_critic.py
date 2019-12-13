@@ -2,8 +2,7 @@ import argparse
 import os
 
 import gym
-import numpy as np
-import tensorflow as tf
+import numpy as np import tensorflow as tf
 
 from agent import ActorCritic
 from utils import *
