@@ -265,7 +265,8 @@ class DDPG:
         params = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope)
         return q, params
 
-    def batch_norm(self, x, is_training, activation_fn, scope, trainable=True):
+    @staticmethod
+    def batch_norm(x, is_training, activation_fn, scope, trainable=True):
         # switch the 'is_training' flag and 'reuse' flag
         return tf.cond(
             is_training,
