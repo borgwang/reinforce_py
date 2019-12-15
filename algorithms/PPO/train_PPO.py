@@ -74,7 +74,7 @@ def main():
     env.close()
 
 
-class Runner(object):
+class Runner:
 
     def __init__(self, env, agent):
         self.env = env
@@ -86,6 +86,7 @@ class Runner(object):
     def run(self, batch_steps, frac):
         b_obs, b_rewards, b_actions, b_values, b_dones, b_neglogps = [], [], [], [], [], []
         ep_infos = []
+
         for s in range(batch_steps):
             actions, values, neglogps = self.agent.step(self.obs, self.dones)
             b_obs.append(self.obs.copy())
@@ -129,4 +130,3 @@ if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     logger.configure()
     main()
-    print('log path: %s' % logger.get_dir())
