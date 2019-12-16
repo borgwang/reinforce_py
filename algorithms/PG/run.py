@@ -77,15 +77,16 @@ class VanillaPG:
         obs, acts, rewards, logp = np.array(traj).T
         obs = torch.tensor(np.stack(obs)).to(args.device)
 
-        vs = self.value_func(obs)
-        vs_numpy = vs.cpu().detach().numpy().flatten()
+        #vs = self.value_func(obs)
+        #vs_numpy = vs.cpu().detach().numpy().flatten()
 
         logp = torch.cat(logp.tolist())
 
         # calculate return estimations
         reward_to_go = [np.sum(rewards[i:]) for i in range(len(rewards))]
 
-        ret = [reward_to_go[i] - vs_numpy[i] for i in range(len(rewards))]
+        # ret = [reward_to_go[i] - vs_numpy[i] for i in range(len(rewards))]
+        ret = np.array(reward_to_go)
         ret = np.reshape(ret, (-1, 1))
         ret = np.tile(ret, (1, 4))
         ret = torch.tensor(ret).to(args.device)
@@ -96,12 +97,12 @@ class VanillaPG:
         self.policy_optim.step()
 
         # update value functions
-        target = torch.tensor(reward_to_go).view((-1, 1)).to(args.device)
-        vf_loss = F.mse_loss(vs, target)
-        print("vf mse: %.4f" % vf_loss)
-        self.vf_optim.zero_grad()
-        vf_loss.backward()
-        self.vf_optim.step()
+        #target = torch.tensor(reward_to_go).view((-1, 1)).to(args.device)
+        #vf_loss = F.mse_loss(vs, target)
+        #print("vf mse: %.4f" % vf_loss)
+        #self.vf_optim.zero_grad()
+        #vf_loss.backward()
+        #self.vf_optim.step()
 
 
 def main():
@@ -156,6 +157,3 @@ if __name__ == '__main__':
     global args
     args = parser.parse_args()
     main()
-
-
-
