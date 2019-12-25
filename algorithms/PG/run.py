@@ -25,10 +25,10 @@ def main(args):
     global_steps = 0
     for ep in range(args.num_ep):
         obs = env.reset()
+        obs = preprocess(obs)
         ep_rewards, rollouts = [], []
         ep_steps = 0
         while True:
-            obs = preprocess(obs)
             logp, action = agent.step(obs)
             next_obs, reward, done, _ = env.step(action)
             ep_rewards.append(reward)

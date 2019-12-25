@@ -72,6 +72,42 @@ class VanillaPG:
         out = out[0].cpu().numpy()
         return logp, out
 
+    def train(self, traj):
+        obs, acts, rewards, logp, next_obs = np.array(traj).T
+
+        obs, next_obs = np.stack(obs), np.stack(next_obs)
+        obs_combine = np.concatenate([obs, next_obs], axis=0)
+        obs_combine = torch.tensor(obs_combine).to(args.device)
+
+        self.value_func.eval()
+        vs_combine = self.value_func(obs_combine)
+        vs_combine_np = vs_combine.cpu().detach().numpy().flatten()
+
+        vs_np = vs_combine_np[:len(vs_combine)//2]
+        next_vs_np = vs_combine_np[len(vs_combine)//2:]
+        vs = vs_combine[:len(vs_combine)//2]
+
+        logp = torch.cat(logp.tolist())
+
+        # calculate return estimations
+        phi = self._calculate_phi(rewards, vs_np, next_vs_np)
+
+        # update policy parameters
+        self.policy.train()
+        self.policy_optim.zero_grad()
+        logp.backward(phi)
+        self.policy_optim.step()
+
+        # update value functions
+        self.value_func.train()
+        rwd_to_go = [np.sum(rewards[i:]) for i in range(len(rewards))]
+        target = torch.tensor(rwd_to_go).view((-1, 1)).to(args.device)
+        vf_loss = F.mse_loss(vs, target)
+        print("vf mse: %.4f" % vf_loss)
+        self.vf_optim.zero_grad()
+        vf_loss.backward()
+        self.vf_optim.step()
+
     def _build_nets(self):
         policy = PolicyNet(in_dim=self.obs_space.shape[0],
                            out_dim=self.act_space.shape[0])
@@ -82,53 +118,28 @@ class VanillaPG:
         self.policy_optim = optim.Adam(self.policy.parameters(), lr=args.lr)
         self.vf_optim = optim.Adam(self.value_func.parameters(), lr=args.lr)
 
-    def train(self, traj):
-        obs, acts, rewards, logp, next_obs = np.array(traj).T
-        obs, next_obs = np.stack(obs), np.stack(next_obs)
-        obs = np.concatenate([obs, next_obs], axis=0)
-        obs = torch.tensor(obs).to(args.device)
-
-        self.value_func.eval()
-        vs = self.value_func(obs)
-        vs_numpy = vs.cpu().detach().numpy().flatten()
-        vs_numpy, next_vs_numpy = vs_numpy[:len(vs)//2], vs_numpy[len(vs)//2:]
-        vs = vs[:len(vs)//2]
-
-        logp = torch.cat(logp.tolist())
-
-        reward_to_go = [np.sum(self.discount(rewards[i:])) 
-                        for i in range(len(rewards))]
-
-        # calculate return estimations
-        ret = reward_to_go
-        # ret = [rewards[i] + next_vs_numpy[i] - vs_numpy[i] 
-        #        for i in range(len(rewards))]
-        ret = [reward_to_go[i] - vs_numpy[i] for i in range(len(rewards))]
-
-        ret = np.array(ret)
-        ret = np.reshape(ret, (-1, 1))
-        ret = np.tile(ret, (1, 4))
-        ret = torch.tensor(ret).to(args.device)
-
-        # update policy parameters
-        self.policy.train()
-        self.policy_optim.zero_grad()
-        logp.backward(ret)
-        self.policy_optim.step()
-
-        # update value functions
-        self.value_func.train()
-        # td = [rewards[i] + next_vs_numpy[i] for i in range(len(rewards))]
-        target = torch.tensor(reward_to_go).view((-1, 1)).to(args.device)
-        vf_loss = F.mse_loss(vs, target)
-        print("vf mse: %.4f" % vf_loss)
-        self.vf_optim.zero_grad()
-        vf_loss.backward()
-        self.vf_optim.step()
-
-    def discount(self, arr, alpha=0.99):
+    def _discount(self, arr, alpha=0.9):
         discount_arr = []
         for a in arr:
             discount_arr.append(alpha * a)
             alpha *= alpha
         return discount_arr
+
+    def _calculate_phi(self, rewards, vs, next_vs):
+        # option1: raw returns
+        raw_returns = [np.sum(rewards) for i in range(len(rewards))]
+        # option2: rewards to go
+        rwd_to_go = [np.sum(rewards[i:]) for i in range(len(rewards))]
+        # option3: discounted rewards to go
+        disc_rwd_to_go = [np.sum(self._discount(rewards[i:])) 
+                          for i in range(len(rewards))]
+        # option4: td0 estimation
+        td0 = rewards + next_vs
+        # subtract baseline
+        baseline = vs
+
+        phi = disc_rwd_to_go - vs
+        phi = np.array(phi).reshape((-1, 1))
+        phi = np.tile(phi, (1, 4))
+        phi = torch.tensor(phi).to(args.device)
+        return phi
