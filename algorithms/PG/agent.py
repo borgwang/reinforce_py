@@ -1,3 +1,6 @@
+from collections import deque
+import random
+
 import numpy as np
 import torch
 import torch.distributions as tdist
@@ -6,18 +9,28 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 
-class PolicyNet(nn.Module):
+class Backbone(nn.Module):
 
-    def __init__(self, in_dim, out_dim):
+    def __init__(self, in_dim):
         super().__init__()
         self.fc1 = nn.Linear(in_dim, 400)
         self.fc2 = nn.Linear(400, 200)
-        self.fc3 = nn.Linear(200, out_dim)
 
         self.bn1 = nn.BatchNorm1d(400)
         self.bn2 = nn.BatchNorm1d(200)
 
-        self.logstd = torch.tensor(np.ones(out_dim, dtype=np.float32),
+
+class PolicyNet(Backbone):
+
+    def __init__(self, in_dim, out_dim):
+        super().__init__(in_dim)
+        self.out_dim = out_dim
+
+        self.fc3 = nn.Linear(200, 100)
+        self.bn3 = nn.BatchNorm1d(100)
+        self.fc4 = nn.Linear(100, self.out_dim)
+
+        self.logstd = torch.tensor(np.zeros((1, out_dim), dtype=np.float32),
             requires_grad=True).to(args.device)
 
     def forward(self, x):
@@ -25,31 +38,33 @@ class PolicyNet(nn.Module):
         x = self.bn1(x)
         x = F.relu(self.fc2(x))
         x = self.bn2(x)
-        mean = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = self.bn3(x)
+        mean = self.fc4(x)
         std = torch.exp(self.logstd)
-        dist = tdist.Normal(mean, std)
-        out = dist.sample()
-        logp = dist.log_prob(out)
+        randn = torch.randn(mean.size()).to(args.device)
+        out = randn * std + mean
+        logp = -torch.log(std * (2 * np.pi) ** 0.5) + (out - mean) ** 2 / (2 * std ** 2)
+        print(next(self.fc4.parameters())[0][:5])
         return logp, out
 
 
-class ValueNet(nn.Module):
+class ValueNet(Backbone):
 
     def __init__(self, in_dim):
-        super().__init__()
-        self.fc1 = nn.Linear(in_dim, 400)
-        self.fc2 = nn.Linear(400, 200)
-        self.fc3 = nn.Linear(200, 1)
-
-        self.bn1 = nn.BatchNorm1d(400)
-        self.bn2 = nn.BatchNorm1d(200)
+        super().__init__(in_dim)
+        self.fc3 = nn.Linear(200, 10)
+        self.bn3 = nn.BatchNorm1d(10)
+        self.fc4 = nn.Linear(10, 1)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = self.bn1(x)
         x = F.relu(self.fc2(x))
         x = self.bn2(x)
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = self.bn3(x)
+        x = self.fc4(x)
         return x
 
 
@@ -69,7 +84,7 @@ class VanillaPG:
         obs = torch.tensor(obs).to(args.device)
         self.policy.eval()
         logp, out = self.policy(obs)
-        out = out[0].cpu().numpy()
+        out = out[0].detach().cpu().numpy()
         return logp, out
 
     def train(self, traj):
@@ -118,7 +133,7 @@ class VanillaPG:
         self.policy_optim = optim.Adam(self.policy.parameters(), lr=args.lr)
         self.vf_optim = optim.Adam(self.value_func.parameters(), lr=args.lr)
 
-    def _discount(self, arr, alpha=0.9):
+    def _discount(self, arr, alpha=0.99):
         discount_arr = []
         for a in arr:
             discount_arr.append(alpha * a)
