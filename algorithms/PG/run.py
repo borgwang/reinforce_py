@@ -5,6 +5,31 @@ import gym
 import torch
 
 from agent import VanillaPG
+from agent import OffPolicyPG
+
+
+def off_policy_run(env, args):
+    agent = OffPolicyPG(env, args)
+    global_steps = 0
+    for ep in range(args.num_ep):
+        rollouts, ep_steps, ep_rewards = run_episode(env, agent)
+        global_steps += ep_steps
+        agent.train(rollouts)
+        ep_avg_rewards = np.mean(ep_rewards)
+        print("Ep %d reward: %.4f ep_steps: %d global_steps: %d" % 
+              (ep, ep_avg_rewards, ep_steps, global_steps))
+
+
+def on_policy_run(env, args):
+    agent = VanillaPG(env, args)
+    global_steps = 0
+    for ep in range(args.num_ep):
+        rollouts, ep_steps, ep_rewards = run_episode(env, agent)
+        global_steps += ep_steps
+        agent.train(rollouts)
+        ep_avg_rewards = np.mean(ep_rewards)
+        print("Ep %d reward: %.4f ep_steps: %d global_steps: %d" % 
+              (ep, ep_avg_rewards, ep_steps, global_steps))
 
 
 def on_policy_run(env, args):
@@ -31,7 +56,8 @@ def main(args):
     env = gym.make(task_name)
     env.seed(args.seed)
     # run
-    on_policy_run(env, args)
+    # on_policy_run(env, args)
+    off_policy_run(env, args)
 
 
 def run_episode(env, agent):
